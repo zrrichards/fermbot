@@ -13,12 +13,11 @@ package fermbot.orchestrator
  *  GNU General Public License for more details.
  */
 
-import fermbot.profile.FermentationProfileRestController
+import fermbot.profile.FermentationProfileController
 import io.micronaut.context.annotation.Context
 import io.micronaut.scheduling.annotation.Scheduled
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  *
@@ -34,7 +33,7 @@ class SystemStateReporter {
     private lateinit var systemStatistics: SystemStatistics
 
     @Inject
-    private lateinit var profileController: FermentationProfileRestController
+    private lateinit var profileController: FermentationProfileController
 
     @Scheduled(fixedRate="1h", initialDelay="1m")
     fun reportOnSystemState() {

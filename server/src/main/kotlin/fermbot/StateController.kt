@@ -1,9 +1,14 @@
 package fermbot
 
+import fermbot.profile.FermentationProfileController
+import fermbot.profile.TemperatureSetpoint
 import io.micronaut.context.annotation.Context
+import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Post
 import org.slf4j.LoggerFactory
+import java.lang.IllegalStateException
+import javax.inject.Inject
 
 /**
  * The main controller for the Fermbot. This controls all state changes and is the main entry point for interaction.
@@ -13,7 +18,7 @@ import org.slf4j.LoggerFactory
  */
 @Context
 @Controller("/")
-class StateController {
+class StateController @Inject constructor (private val fermentationProfileController: FermentationProfileController){
 
     private val logger = LoggerFactory.getLogger(StateController::class.java)
 
@@ -27,17 +32,17 @@ class StateController {
         logger.info("Initializing state controller. Current state: $currentState")
     }
 
-//    @Post("/profile") currently conflicting with the profile controller. need to migrate that code here
-    fun profile() {
+    @Post("/profile")
+    fun profile(@Body setpoints: List<TemperatureSetpoint>) {
         checkState(State.PENDING_PROFILE)
-        //do set profile
+        fermentationProfileController.setProfile(setpoints)
         setState(State.READY)
     }
 
     @Post("/start")
     fun start() {
         checkState(State.READY)
-        //do start
+        fermentationProfileController.start()
         setState(State.RUNNING)
     }
 
@@ -72,6 +77,15 @@ class StateController {
         logger.info("Changing state: ${currentState.name} -> ${newState.name}")
         currentState = newState
         currentState.persist()
+    }
+
+    fun returnToPendingProfile() {
+        when (currentState) {
+            State.READY -> reset()
+            State.RUNNING -> cancel()
+            State.PENDING_PROFILE -> { /*do nothing */ }
+            else -> { throw IllegalStateException("Current stage: $currentState") }
+        }
     }
 }
 

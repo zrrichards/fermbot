@@ -27,13 +27,13 @@ class StateControllerSpec {
     @Test
     fun `pending profile to ready`() {
         expectThat(stateController.getCurrentState()).isEqualTo(State.PENDING_PROFILE)
-        stateController.profile()
+        stateController.profile(listOf())
         expectThat(stateController.getCurrentState()).isEqualTo(State.READY)
     }
 
     @Test
     fun `ready to pending profile`() {
-        stateController.profile()
+        stateController.profile(listOf())
         stateController.reset()
         expectThat(stateController.getCurrentState()).isEqualTo(State.PENDING_PROFILE)
     }

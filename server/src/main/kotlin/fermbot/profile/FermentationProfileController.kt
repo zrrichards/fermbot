@@ -4,21 +4,17 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.*
 import fermbot.Temperature
-import fermbot.Thermometer
 import fermbot.cascadeOptionals
 import fermbot.hardwarebridge.ThermoHydrometerReader
 import fermbot.hardwarebridge.ThermometerReader
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
-import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.Post
 import io.micronaut.scheduling.TaskExecutors
 import io.micronaut.scheduling.TaskScheduler
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
-import java.util.concurrent.ScheduledFuture
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -28,10 +24,10 @@ import javax.inject.Singleton
  * @author Zachary Richards
  * @version 12/11/19
  */
-@Controller("/profile")
-class FermentationProfileRestController @Inject constructor(private val profilePersister: Persister<List<TemperatureSetpoint>>, private val temperatureActuator: TemperatureActuator, private val hydrometerReader: ThermoHydrometerReader, private val hysteresisProfile: HysteresisProfile,
-                                                            private val thermometerReader: ThermometerReader,
-                                                            @param:Named(TaskExecutors.SCHEDULED) private val taskScheduler: TaskScheduler) {
+@Controller
+class FermentationProfileController @Inject constructor(private val profilePersister: Persister<List<TemperatureSetpoint>>, private val temperatureActuator: TemperatureActuator, private val hydrometerReader: ThermoHydrometerReader, private val hysteresisProfile: HysteresisProfile,
+                                                        private val thermometerReader: ThermometerReader,
+                                                        @param:Named(TaskExecutors.SCHEDULED) private val taskScheduler: TaskScheduler) {
 
     private val currentProfile: MutableList<TemperatureSetpoint> = if (profilePersister.hasPersistedData()) {
         profilePersister.read().toMutableList()
@@ -39,7 +35,7 @@ class FermentationProfileRestController @Inject constructor(private val profileP
         mutableListOf()
     }
 
-    private val logger = LoggerFactory.getLogger(FermentationProfileRestController::class.java)
+    private val logger = LoggerFactory.getLogger(FermentationProfileController::class.java)
 
     private lateinit var setpointDeterminer: SetpointDeterminer
 
@@ -47,16 +43,16 @@ class FermentationProfileRestController @Inject constructor(private val profileP
         logger.info("CurrentProfile: {}", currentProfile)
     }
 
-    @Get("/")
+    @Get("/profile")
     fun getProfile() : List<TemperatureSetpoint> {
         return currentProfile
     }
 
-    @Post("/")
-    fun setProfile(@Body stages: List<TemperatureSetpoint>) {
+    fun setProfile(setpoints: List<TemperatureSetpoint>) {
+        require(setpoints.isNotEmpty()) { "Must pass at least one Temperature setpoint" }
         with (currentProfile) {
             clear()
-            addAll(stages)
+            addAll(setpoints)
         }
         logger.info("Fermentation profile changed to: {}", currentProfile)
         profilePersister.persist(currentProfile)
@@ -65,8 +61,7 @@ class FermentationProfileRestController @Inject constructor(private val profileP
     /**
      * Actually starts the fermentation controller and set point
      */
-    @Post("/start")
-    fun  start() {
+    fun start() {
         val fermentationStart = Instant.now()
         setpointDeterminer = SetpointDeterminer(currentProfile, 0, fermentationStart) //TODO this is hardcoding that fermentation started now
         logger.info("Starting fermentation profile")

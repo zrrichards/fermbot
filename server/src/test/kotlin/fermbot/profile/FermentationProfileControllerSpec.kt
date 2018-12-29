@@ -1,6 +1,7 @@
 package fermbot.profile
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fermbot.StateController
 import fermbot.hardwarebridge.tempcontrol.HardwareBackedTemperatureActuator
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.HeatingMode
@@ -31,13 +32,15 @@ import javax.inject.Singleton
  * @version 12/11/19
  */
 @MicronautTest
-class FermentationProfileRestControllerSpec {
+class FermentationProfileControllerSpec {
 
     @Inject
     lateinit var server: EmbeddedServer
 
     @Inject
-    lateinit var controller: FermentationProfileRestController
+    lateinit var controller: FermentationProfileController
+
+    @Inject lateinit var stateController: StateController
 
     @Inject
     @field:Client("/")
@@ -48,7 +51,7 @@ class FermentationProfileRestControllerSpec {
 
     @BeforeEach
     fun clearProfile() {
-        controller.clearProfile()
+        stateController.returnToPendingProfile()
     }
 
     @Inject private lateinit var temperatureActuator: TemperatureActuator
@@ -172,7 +175,7 @@ class FermentationProfileRestControllerSpec {
         )
         val mockPersister = MockPersister(persistedProfile)
 
-        val profileController = FermentationProfileRestController(mockPersister, mockk(), mockk(), mockk(), mockk(), mockk())
+        val profileController = FermentationProfileController(mockPersister, mockk(), mockk(), mockk(), mockk(), mockk())
 
         expectThat(profileController.getProfile()).isEqualTo(persistedProfile)
     }
