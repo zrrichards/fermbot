@@ -1,7 +1,6 @@
 package fermbot.profile
 
 import fermbot.Hydrometer
-import fermbot.Temperature
 import org.slf4j.LoggerFactory
 import java.time.Instant
 
@@ -10,9 +9,9 @@ import java.time.Instant
  * @author Zachary Richards
  * @version 12/12/19
  */
-class ProfileController(private val setpoints: List<TemperatureSetpoint>, private var currentSetpointIndex: Int = 0, private val fermentationStart: Instant = Instant.now()) { //TODO is there a better name? this doesn't control the fermentation but it controls which stage of the fermentation we are in
+class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, private var currentSetpointIndex: Int = 0, private val fermentationStart: Instant = Instant.now()) { //TODO is there a better name? this doesn't control the fermentation but it controls which stage of the fermentation we are in
 
-    private val logger = LoggerFactory.getLogger(ProfileController::class.java)
+    private val logger = LoggerFactory.getLogger(SetpointDeterminer::class.java)
 
     fun getCurrentSetpointIndex() : Int {
         return currentSetpointIndex

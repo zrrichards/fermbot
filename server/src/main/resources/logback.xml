@@ -9,8 +9,6 @@
         </encoder>
     </appender>
 
-    <timestamp key="timestamp" datePattern="yyyy-MM-dd" />
-
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <file>fermbot-log.log</file>
         <append>true</append>
@@ -18,6 +16,8 @@
             <pattern>%cyan(%d{HH:mm:ss.SSS}) %gray([%thread]) %highlight(%-5level) %magenta(%logger{36}) - %msg%n</pattern>
         </encoder>
     </appender>
+
+    <logger name="fermbot" value="debug" />
 
     <root level="info">
         <appender-ref ref="STDOUT" />

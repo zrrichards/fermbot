@@ -6,10 +6,12 @@ micronaut:
 
 fermbot:
   suffix: #Enter your device name here. These must be unique per fermbot instance
+  tilt-enabled: true
+  ds18b20-enabled: true
   pytilt-script-path: #Enter the path to the python directory of this repository. Do not include the trailing slash
   #add gpio pin for DS18B20
   #add a b c for ds18B20 error correction
-  #add gravity stability, i.e. how long does gravity have to be within 1 or 2 points to be considered reach (i.e. 12 hours)
+  #add gravity stability, i.e. how long does gravity have to be within 1 or 2 points to be considered reach (i.e. 12 hours) (in ISO-8601 format)
 
 brewfather:
   customStreamId: #Enter the custom stream ID from Brewfather (the text after id=)

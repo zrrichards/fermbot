@@ -13,7 +13,7 @@ import java.time.temporal.ChronoUnit
  * @author Zachary Richards
  * @version 12/13/19
  */
-class ProfileControllerSpec {
+class SetpointDeterminerSpec {
 
     val gravityBasedLagerProfile = listOf(
         SpecificGravityBasedSetpoint(48.0.toF(), 1.023, "Primary"),
@@ -23,20 +23,20 @@ class ProfileControllerSpec {
 
     @Test
     fun `the initial profile stage is the first profile by default`() {
-        val profileController = ProfileController(gravityBasedLagerProfile)
+        val profileController = SetpointDeterminer(gravityBasedLagerProfile)
         expectThat(profileController.getCurrentSetpointIndex()).isEqualTo(0)
     }
 
     @Test
     fun `initial setpoint is not changed if gravity is too high`() {
-        val profileController = ProfileController(gravityBasedLagerProfile)
+        val profileController = SetpointDeterminer(gravityBasedLagerProfile)
         val setpoint = profileController.getSetpoint(FixedHydrometer(1.040))
         expectThat(setpoint).isEqualTo(gravityBasedLagerProfile[0])
     }
 
     @Test
     fun `initial setpoint is changed if gravity is equal to what is defined in the profile`() {
-        val profileController = ProfileController(gravityBasedLagerProfile)
+        val profileController = SetpointDeterminer(gravityBasedLagerProfile)
         val setpoint = profileController.getSetpoint(FixedHydrometer(1.023))
         expectThat(setpoint).isEqualTo(gravityBasedLagerProfile[1])
         expectThat(profileController.getCurrentSetpointIndex()).isEqualTo(1)
@@ -44,7 +44,7 @@ class ProfileControllerSpec {
 
     @Test
     fun `initial setpoint is changed if gravity is less than what is defined in the profile`() {
-        val profileController = ProfileController(gravityBasedLagerProfile)
+        val profileController = SetpointDeterminer(gravityBasedLagerProfile)
         val setpoint = profileController.getSetpoint(FixedHydrometer(1.020))
         expectThat(setpoint).isEqualTo(gravityBasedLagerProfile[1])
         expectThat(profileController.getCurrentSetpointIndex()).isEqualTo(1)
@@ -56,7 +56,7 @@ class ProfileControllerSpec {
         val setpoints = listOf(
                 TimeBasedSetpoint(48.0.toF(), Duration.ofDays(2), "", false)
         )
-        val profileController = ProfileController(setpoints,0, Instant.now().minus(1, ChronoUnit.DAYS))
+        val profileController = SetpointDeterminer(setpoints,0, Instant.now().minus(1, ChronoUnit.DAYS))
         expectThat(profileController.getSetpoint(NullHydrometer)).isEqualTo(setpoints[0])
     }
 }

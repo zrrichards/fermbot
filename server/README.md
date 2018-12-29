@@ -24,10 +24,20 @@ by default 1-wire protocol is to be enabled on GPIO4
 
 ... in progress ...
 
+##Typical Workflow:
+1. Configure desired fermentation profile (perhaps prior to or while brewing)
+2. Pitch yeast, (optional: add tilt), insert thermometer, plug in heating/cooling controllers.
+    Displays dashboard with tilt reading, thermometer, profile, and which of heating/cooling is enabled. (all data is ephemeral and just shows current status)
+3. Issue command to "Start" fermentation. Temp/SG data recording is started. (Brewfather uploading starts) and heating/cooling starts.
+
 ## API
 Below describes the API of the webserver portion of Fermbot. The front-end client of this API is in the `../webclient` directory.
 
 Right now the Fermbot only supports a single batch at a time. That may be changed in the future.
+
+###Getting current system status
+Issuing a GET request to `/status` will give the most up-to-date information about the system.
+
 ###Configuration of the current Fermentation Profile
 Here is an example of how to configure the following fermentation profile (here is a lager)
 

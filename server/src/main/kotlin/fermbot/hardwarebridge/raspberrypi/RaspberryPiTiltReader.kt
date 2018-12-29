@@ -15,8 +15,11 @@ package fermbot.hardwarebridge.raspberrypi
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fermbot.Configuration
-import fermbot.hardwarebridge.Tilt
-import fermbot.hardwarebridge.TiltReader
+import fermbot.hardwarebridge.*
+import io.micronaut.context.annotation.Primary
+import io.micronaut.context.annotation.Requires
+import io.micronaut.context.annotation.Value
+import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.File
 import java.nio.file.Paths
@@ -30,11 +33,19 @@ import kotlin.io.readText
  * @version $ 12/5/19
  */
 @Singleton
-class RaspberryPiTiltReader @Inject constructor(configuration: Configuration) : TiltReader {
+@Requires(property="tilt-enabled", value="true")
+class RaspberryPiTiltReader @Inject constructor(configuration: Configuration) : ThermoHydrometerReader {
 
-    private val pathToPytiltScript = configuration.pytiltScriptPath
+    private val logger = LoggerFactory.getLogger(RaspberryPiTiltReader::class.java)
 
-    override fun readTilt(): Tilt {
+    init {
+        logger.debug("Loading RaspberryPiTiltReader")
+    }
+
+    @Value("\${fermbot.pytilt-script-path}")
+    private lateinit var pathToPytiltScript: String
+
+    override fun readTilt(): ThermoHydrometer {
         val pytiltScript = "$pathToPytiltScript/pytilt.py"
         val process = ProcessBuilder("python", pytiltScript).start()
         val exited = process.waitFor(10, TimeUnit.SECONDS)
@@ -44,11 +55,30 @@ class RaspberryPiTiltReader @Inject constructor(configuration: Configuration) : 
             throw RuntimeException("Unable to read Tilt: $error, Current working directory: ${getWorkingDirectory()}. Attempted path to pytilt script: $pathToPytiltScript. File exists? $fileExists")
         }
         val objectMapper = ObjectMapper()
-        return objectMapper.readValue(process.inputStream, Tilt::class.java)
+        val tilt = objectMapper.readValue(process.inputStream, Tilt::class.java)
+        logger.debug("Read Tilt: {}", tilt)
+        return tilt
     }
 
     private fun getWorkingDirectory(): String {
         return Paths.get("").toAbsolutePath().toString()
+    }
+}
+
+@Singleton
+@Primary
+@Requires(property="tilt-enabled", notEquals="true")
+class RaspberryPiNullTiltReader() : ThermoHydrometerReader {
+
+    private val logger = LoggerFactory.getLogger(NullThermometerReader::class.java)
+
+    init {
+        logger.debug("Loading NullThermoHydrometerReader")
+    }
+
+    override fun readTilt(): ThermoHydrometer {
+        logger.debug("Read Tilt: [NullTilt]")
+        return NullTilt
     }
 }
 

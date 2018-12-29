@@ -13,8 +13,6 @@ package fermbot
  *  GNU General Public License for more details.
  */
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializer
 import io.micronaut.context.annotation.Value
 import java.time.Instant
 import javax.inject.Singleton
@@ -41,9 +39,6 @@ class Configuration {
 
     @Value("\${brewfather.custom-stream-id}")
     lateinit var brewfatherCustomStreamId: String
-
-    @Value("\${fermbot.pytilt-script-path}")
-    lateinit var pytiltScriptPath: String
 
     lateinit var heaterPinName: String
 }

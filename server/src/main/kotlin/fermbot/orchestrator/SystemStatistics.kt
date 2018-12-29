@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import fermbot.Configuration
 import fermbot.InstantISO8601Serializer
-import fermbot.hardwarebridge.Tilt
+import fermbot.hardwarebridge.ThermoHydrometer
 import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
@@ -31,7 +31,7 @@ import javax.inject.Singleton
 @Singleton
 class SystemStatistics @Inject constructor(private val configuration: Configuration){
 
-    var latestTiltReading: Tilt? = null
+    var latestTiltReading: ThermoHydrometer? = null
 
     var successfulUploads = 0
         private set

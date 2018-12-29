@@ -59,7 +59,6 @@ class FermentationProfileRestControllerSpec {
         override fun persistProfile(currentProfile: MutableList<TemperatureSetpoint>) {
             persistedProfile = currentProfile
         }
-
     }
 
     @Test

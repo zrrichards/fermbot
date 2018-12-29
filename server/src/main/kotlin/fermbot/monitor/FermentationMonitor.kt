@@ -15,7 +15,9 @@ package fermbot.monitor
 
 import fermbot.Configuration
 import fermbot.brewfather.Brewfather
-import fermbot.hardwarebridge.TiltReader
+import fermbot.brewfather.BrewfatherProductionClient
+import fermbot.hardwarebridge.NullTilt
+import fermbot.hardwarebridge.ThermoHydrometerReader
 import fermbot.orchestrator.SystemStatistics
 import io.micronaut.scheduling.annotation.Scheduled
 import javax.inject.Inject
@@ -30,14 +32,21 @@ import javax.inject.Singleton
 class FermentationMonitor @Inject constructor(private val configuration: Configuration) {
     @Inject private lateinit var brewfather: Brewfather
 
-    @Inject private lateinit var tiltReader: TiltReader
+    @Inject private lateinit var thermoHydrometerReader: ThermoHydrometerReader
 
     @Inject private lateinit var systemStatistics: SystemStatistics
 
 
     @Scheduled(fixedRate = "905s", initialDelay = "10s") //905s = 15 min + 5 seconds (Brewfather max logging time is every 15 min)
     fun execute() {
-        val tilt = tiltReader.readTilt()
+
+        //todo read temp from ds18b20 if enabled
+
+        val tilt = thermoHydrometerReader.readTilt()
+        if (tilt is NullTilt) {
+            return
+        }
+
         systemStatistics.latestTiltReading = tilt
         brewfather.updateBatchDetails(tilt.currentTemp, tilt.specificGravity)
     }

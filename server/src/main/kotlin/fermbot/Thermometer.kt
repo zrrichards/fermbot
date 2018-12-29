@@ -27,5 +27,10 @@ interface Thermometer {
      * Represents when the value was read
      */
     val timestamp: Instant
+
+    /**
+     * the ID of this device (must be unique to this instance of the fermbot)
+     */
+    val id: String
 }
 
