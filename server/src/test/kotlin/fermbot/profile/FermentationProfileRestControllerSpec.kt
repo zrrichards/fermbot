@@ -1,6 +1,7 @@
 package fermbot.profile
 
 import fermbot.toF
+import io.micronaut.context.annotation.Replaces
 import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpRequest.GET
 import io.micronaut.http.HttpRequest.POST
@@ -9,12 +10,14 @@ import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
 import io.micronaut.runtime.server.EmbeddedServer
 import io.micronaut.test.annotation.MicronautTest
+import io.micronaut.test.annotation.MockBean
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.Duration
 import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  *
@@ -37,6 +40,25 @@ class FermentationProfileRestControllerSpec {
     @BeforeEach
     fun clearProfile() {
         controller.clearProfile()
+    }
+
+    @Replaces(RaspberryPiProfilePersister::class)
+    @Singleton
+    class MockPersister : ProfilePersister { //prevents creating the json file on the filesystem
+        var persistedProfile = mutableListOf<TemperatureSetpoint>()
+
+        override fun hasPersistedProfile(): Boolean {
+            return persistedProfile.isNotEmpty()
+        }
+
+        override fun readProfile(): List<TemperatureSetpoint> {
+            return persistedProfile
+        }
+
+        override fun persistProfile(currentProfile: MutableList<TemperatureSetpoint>) {
+            persistedProfile = currentProfile
+        }
+
     }
 
     @Test
