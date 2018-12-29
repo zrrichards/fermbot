@@ -1,13 +1,18 @@
 package fermbot
 
-import fermbot.hardwarebridge.tempcontrol.ActiveHighDigitalOutputDevice
-import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
+import fermbot.hardwarebridge.tempcontrol.*
 import fermbot.monitor.HeatingMode
+import io.micronaut.context.annotation.Bean
+import io.micronaut.context.annotation.Factory
+import io.micronaut.context.annotation.Replaces
+import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import javax.inject.Named
+import javax.inject.Singleton
 
 /**
  *
@@ -20,15 +25,15 @@ class TemperatureActuatorSpec {
     fun `can create controller and read its current state`() {
         val mockHeater = spyDevice()
         val mockCooler = spyDevice()
-        val controller = TemperatureActuator(mockHeater, mockCooler)
-        expectThat(controller.currentMode).isEqualTo(HeatingMode.OFF)
+        val controller = HardwareBackedTemperatureActuator(mockHeater, mockCooler)
+        expectThat(controller.getCurrentHeatingMode()).isEqualTo(HeatingMode.OFF)
     }
 
     @Test
     fun `can enable heating`() {
         val mockHeater = spyDevice()
         val mockCooler = spyDevice()
-        val controller = TemperatureActuator(mockHeater, mockCooler)
+        val controller = HardwareBackedTemperatureActuator(mockHeater, mockCooler)
 
         controller.setHeatingMode(HeatingMode.HEATING)
 
@@ -62,3 +67,23 @@ class InMemoryActiveHighDigitalOutputDevice : ActiveHighDigitalOutputDevice {
 private fun spyDevice(): InMemoryActiveHighDigitalOutputDevice {
     return spyk(InMemoryActiveHighDigitalOutputDevice())
 }
+
+//notes on how to mock micronaut bean factory
+//@Factory
+//@Replaces(factory= HardwareBackedHeaterCoolerFactory::class)
+//class TestFactory : HeaterCoolerFactory {
+//
+//    @Bean
+//    @Singleton
+//    @Named("heater")
+//    override fun createHeater(): ActiveHighDigitalOutputDevice {
+//        return mockk()
+//    }
+//
+//    @Bean
+//    @Singleton
+//    @Named("cooler")
+//    override fun createCooler(): ActiveHighDigitalOutputDevice {
+//        return mockk()
+//    }
+//}

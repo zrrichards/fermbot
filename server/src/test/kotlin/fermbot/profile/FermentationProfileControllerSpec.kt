@@ -1,9 +1,6 @@
 package fermbot.profile
 
-import fermbot.hardwarebridge.tempcontrol.ActiveHighDigitalOutputDevice
-import fermbot.hardwarebridge.tempcontrol.HardwareBackedActiveHighDigitalOutputDevice
-import fermbot.hardwarebridge.tempcontrol.HardwareBackedHeaterCoolerFactory
-import fermbot.hardwarebridge.tempcontrol.HeaterCoolerFactory
+import fermbot.hardwarebridge.tempcontrol.*
 import fermbot.monitor.HeatingMode
 import fermbot.toF
 import io.micronaut.context.annotation.Bean
@@ -19,6 +16,7 @@ import io.micronaut.runtime.server.EmbeddedServer
 import io.micronaut.test.annotation.MicronautTest
 import io.micronaut.test.annotation.MockBean
 import io.mockk.mockk
+import io.mockk.spyk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -51,6 +49,8 @@ class FermentationProfileControllerSpec {
         controller.clearProfile()
     }
 
+    @Inject private lateinit var temperatureActuator: TemperatureActuator
+
     @Replaces(FileBasedProfilePersister::class)
     @Singleton
     class MockPersister(private var persistedProfile: MutableList<TemperatureSetpoint> = mutableListOf()) : Persister<List<TemperatureSetpoint>> { //prevents creating the json file on the filesystem
@@ -66,6 +66,25 @@ class FermentationProfileControllerSpec {
         override fun persist(currentProfile: List<TemperatureSetpoint>) {
             persistedProfile = currentProfile.toMutableList()
         }
+    }
+
+    class MockTemperatureActuator : TemperatureActuator {
+        private var currentHeatingMode = HeatingMode.OFF
+
+        override fun setHeatingMode(heatingMode: HeatingMode): HeatingMode {
+            val tmp = currentHeatingMode
+            currentHeatingMode = heatingMode
+            return tmp
+        }
+
+        override fun getCurrentHeatingMode(): HeatingMode {
+            return currentHeatingMode
+        }
+    }
+
+    @MockBean(HardwareBackedTemperatureActuator::class)
+    fun createSpyActuator() : TemperatureActuator {
+        return spyk(MockTemperatureActuator())
     }
 
     @Test
@@ -142,24 +161,7 @@ class FermentationProfileControllerSpec {
 
     }
 
-    @Factory
-    @Replaces(factory=HardwareBackedHeaterCoolerFactory::class)
-    class TestFactory : HeaterCoolerFactory {
 
-        @Bean
-        @Singleton
-        @Named("heater")
-        override fun createHeater(): ActiveHighDigitalOutputDevice {
-            return mockk()
-        }
-
-        @Bean
-        @Singleton
-        @Named("cooler")
-        override fun createCooler(): ActiveHighDigitalOutputDevice {
-            return mockk()
-        }
-    }
 
     @Test
     fun `persisted profiles are loaded at startup`() {
@@ -174,7 +176,7 @@ class FermentationProfileControllerSpec {
     }
 
     @Test
-    fun `can test heat for 5 miliseconds`() {
+    fun `can test heat for 5 milliseconds`() {
         val test = TemperatureControllerTestPayload(HeatingMode.HEATING, Duration.ofMillis(5))
         controller.testTemperatureControl(test)
     }

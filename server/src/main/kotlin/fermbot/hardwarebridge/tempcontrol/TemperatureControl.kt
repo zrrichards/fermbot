@@ -43,15 +43,17 @@ class HardwareBackedActiveHighDigitalOutputDevice(private val outputPin: Digital
  * Its primary role is to ensure that the heater and cooler are both not enabled at the same time.
  */
 @Singleton
-class TemperatureActuator @Inject constructor(@param:Named("heater") private val heater: ActiveHighDigitalOutputDevice, @param:Named("cooler") private val cooler: ActiveHighDigitalOutputDevice) {
-    var currentMode = HeatingMode.OFF
-        private set
+class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater") private val heater: ActiveHighDigitalOutputDevice, @param:Named("cooler") private val cooler: ActiveHighDigitalOutputDevice) : TemperatureActuator{
+
+    private var currentMode = HeatingMode.OFF
+
+    override fun getCurrentHeatingMode() = currentMode
 
     /**
      * Sets the current heating mode
      * Returns the previous heating mode
      */
-    fun setHeatingMode(heatingMode: HeatingMode) : HeatingMode {
+    override fun setHeatingMode(heatingMode: HeatingMode) : HeatingMode {
         when (heatingMode) {
             HeatingMode.OFF -> {
                 heater.disable()
@@ -79,6 +81,12 @@ class TemperatureActuator @Inject constructor(@param:Named("heater") private val
     }
 }
 
+interface TemperatureActuator {
+
+    fun setHeatingMode(heatingMode: HeatingMode): HeatingMode
+    fun getCurrentHeatingMode(): HeatingMode
+}
+
 @Factory
 class HardwareBackedHeaterCoolerFactory @Inject constructor(private val gpioManager: GpioManager) : HeaterCoolerFactory {
 
@@ -88,25 +96,7 @@ class HardwareBackedHeaterCoolerFactory @Inject constructor(private val gpioMana
     @Value("\${fermbot.cooler-pin-name}")
     private var coolerPinName: String? = null
 
-    @Bean
-    @Singleton
-    @Named("heater")
-    override fun createHeater(): ActiveHighDigitalOutputDevice {
-        validate()
-        return HardwareBackedActiveHighDigitalOutputDevice(gpioManager.provisionDigitalOutputDevice(heaterPinName!!, "Heater"))
-    }
-
-    @Bean
-    @Singleton
-    @Named("cooler")
-    override fun createCooler(): ActiveHighDigitalOutputDevice {
-        validate()
-        return HardwareBackedActiveHighDigitalOutputDevice(gpioManager.provisionDigitalOutputDevice(coolerPinName!!, "Cooler"))
-    }
-
-
-    //todo this should be in an init block for this class. messing around with micronaut so had to move it
-    private fun validate() {
+    init {
         require(heaterPinName != null) {
             """Heater pin must be defined. Set the following property in application.yml:
                 |fermbot:
@@ -124,5 +114,19 @@ class HardwareBackedHeaterCoolerFactory @Inject constructor(private val gpioMana
         require(heaterPinName != coolerPinName) {
             "Both the heater and cooler are defined on pin $heaterPinName. They must be defined on different pins"
         }
+    }
+
+    @Bean
+    @Singleton
+    @Named("heater")
+    override fun createHeater(): ActiveHighDigitalOutputDevice {
+        return HardwareBackedActiveHighDigitalOutputDevice(gpioManager.provisionDigitalOutputDevice(heaterPinName!!, "Heater"))
+    }
+
+    @Bean
+    @Singleton
+    @Named("cooler")
+    override fun createCooler(): ActiveHighDigitalOutputDevice {
+        return HardwareBackedActiveHighDigitalOutputDevice(gpioManager.provisionDigitalOutputDevice(coolerPinName!!, "Cooler"))
     }
 }

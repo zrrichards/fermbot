@@ -62,7 +62,7 @@ class FermentationProfileRestController @Inject constructor(private val profileP
      * This is useful for testing the circuit wiring and ensuring the relays are working correctly
      */
     fun testTemperatureControl(test: TemperatureControllerTestPayload) {
-        val initialHeatingMode = temperatureActuator.currentMode
+        val initialHeatingMode = temperatureActuator.getCurrentHeatingMode()
         val duration = test.duration.coerceAtMost(Duration.ofSeconds(30))
         if (duration != test.duration) {
             logger.warn("Ignoring given duration value of ${test.duration.toPrettyString()}. Using maximum value of 30 seconds")
