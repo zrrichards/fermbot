@@ -1,4 +1,4 @@
-package fermbot.ds18b20
+package fermbot.hardwarebridge
 
 import fermbot.Temperature
 

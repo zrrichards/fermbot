@@ -1,5 +1,6 @@
 package fermbot.ds18b20
 
+import fermbot.hardwarebridge.CustomDS18B20TemperatureCorrector
 import fermbot.toC
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat

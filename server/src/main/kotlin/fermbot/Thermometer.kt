@@ -1,6 +1,5 @@
 package fermbot
 
-import fermbot.ds18b20.TemperatureCorrector
 import java.time.Instant
 
 /*  Fermbot - Open source fermentation monitoring software.
