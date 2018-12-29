@@ -84,7 +84,9 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
                     currentSg = currentSg,
                     temp = currentTemp,
                     currentSetpointIndex = fermentationProfileController!!.currentSetpointIndex,
-                    heatingMode = fermentationProfileController!!.getCurrentHeatingMode()
+                    heatingMode = fermentationProfileController!!.getCurrentHeatingMode(),
+                    setpoint = fermentationProfileController!!.currentSetpoint.tempSetpoint,
+                    stageDescription = fermentationProfileController!!.currentSetpoint.stageDescription
             ))
         }
 

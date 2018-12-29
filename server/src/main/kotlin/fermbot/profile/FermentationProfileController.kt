@@ -100,8 +100,8 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
         fermentationMonitorTask.fermentationProfileController = this
         fermentationMonitorTask.clearSnapshots()
         if (Environments.SIMULATION in environment.activeNames) {
-            taskScheduler.scheduleAtFixedRate(Duration.ofMillis(1), Duration.ofMillis(1), temperatureControlTask)
-            taskScheduler.scheduleAtFixedRate(Duration.ofSeconds(5), Duration.ofSeconds(5), fermentationMonitorTask)
+            taskScheduler.scheduleAtFixedRate(Duration.ofMillis(20), Duration.ofMillis(20), temperatureControlTask)
+            taskScheduler.scheduleAtFixedRate(Duration.ofMillis(20), Duration.ofMillis(20), fermentationMonitorTask)
         } else {
             taskScheduler.scheduleAtFixedRate(Duration.ofMinutes(10), Duration.ofMinutes(10), temperatureControlTask)
             taskScheduler.scheduleAtFixedRate(BREWFATHER_UPLOAD_PERIOD, BREWFATHER_UPLOAD_PERIOD, fermentationMonitorTask)

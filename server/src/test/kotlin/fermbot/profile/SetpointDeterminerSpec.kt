@@ -1,6 +1,7 @@
 package fermbot.profile
 
 import fermbot.toF
+import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -29,20 +30,20 @@ class SetpointDeterminerSpec {
 
     @Test
     fun `the initial profile stage is the first profile by default`() {
-        val profileController = SetpointDeterminer(gravityBasedLagerProfile, SetpointCompletionPersister(), )
+        val profileController = SetpointDeterminer(gravityBasedLagerProfile, SetpointCompletionPersister(), mockk(relaxed=true))
         expectThat(profileController.currentSetpointIndex).isEqualTo(0)
     }
 
     @Test
     fun `initial setpoint is not changed if gravity is too high`() {
-        val profileController = SetpointDeterminer(gravityBasedLagerProfile, SetpointCompletionPersister(), )
+        val profileController = SetpointDeterminer(gravityBasedLagerProfile, SetpointCompletionPersister(), mockk(relaxed=true))
         val setpoint = profileController.getSetpoint(FixedHydrometer(1.040).toOptional())
         expectThat(setpoint).isEqualTo(gravityBasedLagerProfile[0])
     }
 
     @Test
     fun `initial setpoint is changed if gravity is equal to what is defined in the profile`() {
-        val profileController = SetpointDeterminer(gravityBasedLagerProfile, SetpointCompletionPersister(), )
+        val profileController = SetpointDeterminer(gravityBasedLagerProfile, SetpointCompletionPersister(), mockk(relaxed=true))
         val setpoint = profileController.getSetpoint(FixedHydrometer(1.023).toOptional())
         expectThat(setpoint).isEqualTo(gravityBasedLagerProfile[1])
         expectThat(profileController.currentSetpointIndex).isEqualTo(1)
@@ -50,7 +51,7 @@ class SetpointDeterminerSpec {
 
     @Test
     fun `initial setpoint is changed if gravity is less than what is defined in the profile`() {
-        val profileController = SetpointDeterminer(gravityBasedLagerProfile, SetpointCompletionPersister(), )
+        val profileController = SetpointDeterminer(gravityBasedLagerProfile, SetpointCompletionPersister(), mockk(relaxed=true))
         val setpoint = profileController.getSetpoint(FixedHydrometer(1.020).toOptional())
         expectThat(setpoint).isEqualTo(gravityBasedLagerProfile[1])
         expectThat(profileController.currentSetpointIndex).isEqualTo(1)
@@ -62,7 +63,7 @@ class SetpointDeterminerSpec {
         val setpoints = listOf(
                 TimeBasedSetpoint(48.0.toF(), Duration.ofDays(2), "", false)
         )
-        val profileController = SetpointDeterminer(setpoints, SetpointCompletionPersister(), )
+        val profileController = SetpointDeterminer(setpoints, SetpointCompletionPersister(), mockk(relaxed=true))
         expectThat(profileController.getSetpoint(NullHydrometer.toOptional())).isEqualTo(setpoints[0])
     }
 }
