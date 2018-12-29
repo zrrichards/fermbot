@@ -44,8 +44,6 @@ class HardwareBackedActiveHighDigitalOutputDevice(private val outputPin: Digital
     }
 }
 
-//FIXME shut down gpio if micronaut shuts down
-
 /**
  * This class is responsible for actuating the heating and cooling devices. It knows nothing about temperature setpoints.
  * Its primary role is to ensure that the heater and cooler are both not enabled at the same time.
@@ -57,7 +55,16 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater
 
     private val logger = LoggerFactory.getLogger(HardwareBackedTemperatureActuator::class.java)
 
+    val heatingCoolingConfiguration = determineHeaterCoolerConfiguration()
+
     override fun getCurrentHeatingMode() = currentMode
+
+    init {
+        logger.info("Initializing Temperature Actuator. ${heater.ifPresent { "Heater is enabled " }} ${cooler.ifPresent { "Cooler is enabled" }}. Heating mode is currently $currentMode")
+        if (heatingCoolingConfiguration == HeaterCoolerConfiguration.NONE) {
+            logger.warn("No temperature control devices are enabled. The FermBot will not be able to control your fermentation temperature. It will only be monitored. Ensure this is what you want before proceeding")
+        }
+    }
 
     /**
      * Sets the current heating mode
@@ -65,6 +72,24 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater
      */
     override fun setHeatingMode(heatingMode: HeatingMode) : HeatingMode {
         logger.debug("Setting heating mode to: {}", heatingMode)
+
+        when (heatingCoolingConfiguration) {
+            HeaterCoolerConfiguration.NONE -> {
+               logger.warn("No temperature control devices enabled. Ignoring request to set heating mode to $heatingMode")
+            }
+            HeaterCoolerConfiguration.HEATER -> {
+                if (heatingMode == HeatingMode.COOLING ) {
+                    logger.warn("No cooling device enabled. Ignoring request to set heating mode to $heatingMode")
+                }
+            }
+            HeaterCoolerConfiguration.COOLER -> {
+                if (heatingMode == HeatingMode.HEATING) {
+                    logger.warn("No heating device enabled. Ignoring request to set heating mode to $heatingMode")
+                }
+            }
+            HeaterCoolerConfiguration.BOTH -> { /* do nothing. both devices are configured */ }
+        }
+
 
         /* Ensure disable is called first so that there is no time when both are enabled simultaneously
          * Also, put a small pause to ensure that the pin has time to set to low before enabling the other device
@@ -101,6 +126,30 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater
         currentMode = heatingMode
         return prevHeatingMode
     }
+
+    private fun determineHeaterCoolerConfiguration(): HeaterCoolerConfiguration {
+        return if (heater.isPresent) {
+            if (cooler.isPresent) {
+                HeaterCoolerConfiguration.BOTH
+            } else {
+                HeaterCoolerConfiguration.HEATER
+            }
+        } else {
+            if (cooler.isPresent) {
+                HeaterCoolerConfiguration.COOLER
+            } else {
+                HeaterCoolerConfiguration.NONE
+            }
+
+        }
+    }
+}
+
+enum class HeaterCoolerConfiguration {
+    NONE,
+    HEATER,
+    COOLER,
+    BOTH
 }
 
 /**
