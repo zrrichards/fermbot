@@ -1,4 +1,4 @@
-package fermbot
+package fermbot.brewfather
 
 /*  Fermbot - Open source fermentation monitoring software.
  *  Copyright (C) 2019 Zachary Richards

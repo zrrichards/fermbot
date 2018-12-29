@@ -1,6 +1,6 @@
 package fermbot.ds18b20
 
-import fermbot.hardwarebridge.CustomDS18B20TemperatureCorrector
+import fermbot.hardwarebridge.DS18B20TemperatureCorrector
 import fermbot.toC
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -26,7 +26,7 @@ class TemperatureCorrectorSpec {
         //y = ax^2 + bx + c
 
         for (i in 0 until x.size) {
-            expectThat(CustomDS18B20TemperatureCorrector(a[i].toDouble(), b[i].toDouble(), c[i].toDouble(), 0.0.toC(), 100.0.toC())(x[i].toDouble().toC()))
+            expectThat(DS18B20TemperatureCorrector(a[i].toDouble(), b[i].toDouble(), c[i].toDouble(), 0.0.toC(), 100.0.toC())(x[i].toDouble().toC()))
                     .isEqualTo(y[i].toDouble().toC())
         }
     }

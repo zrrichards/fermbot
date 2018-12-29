@@ -1,4 +1,4 @@
-package fermbot
+package fermbot.orchestrator
 /*  Fermbot - Open source fermentation monitoring software.
  *  Copyright (C) 2019 Zachary Richards
  *
@@ -13,28 +13,24 @@ package fermbot
  *  GNU General Public License for more details.
  */
 
-import io.micronaut.discovery.event.ServiceStartedEvent
-import io.micronaut.runtime.event.annotation.EventListener
-import io.micronaut.scheduling.annotation.Async
-import org.slf4j.LoggerFactory
+import fermbot.orchestrator.SystemStatistics
+import io.micronaut.http.annotation.Controller
+import io.micronaut.http.annotation.Get
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  *
  * @author Zachary Richards
- * @version $ 12/9/19
+ * @version $ 12/8/19
  */
-@Singleton
-class StartupEventListener {
-
-    private val logger = LoggerFactory.getLogger(Application::class.java)
+@Controller("/status")
+class SystemStatusRestController {
 
     @Inject
-    private lateinit var configuration: Configuration
+    private lateinit var systemStatistics: SystemStatistics
 
-    @EventListener
-    fun startupCompleted(event: ServiceStartedEvent) {
-        logger.info("Started Fermbot. Device name: " + configuration.deviceName)
+    @Get("/")
+    fun getStatus() : SystemStatistics {
+       return systemStatistics
     }
 }

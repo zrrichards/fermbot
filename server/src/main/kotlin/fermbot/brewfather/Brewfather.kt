@@ -1,4 +1,4 @@
-package fermbot
+package fermbot.brewfather
 /*  Fermbot - Open source fermentation monitoring software.
  *  Copyright (C) 2019 Zachary Richards
  *
@@ -14,6 +14,8 @@ package fermbot
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fermbot.*
+import fermbot.orchestrator.SystemStatistics
 import io.micronaut.http.HttpRequest.POST
 import io.micronaut.http.MediaType
 import io.micronaut.http.client.DefaultHttpClient

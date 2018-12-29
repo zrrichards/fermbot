@@ -13,8 +13,9 @@ package fermbot
  *  GNU General Public License for more details.
  */
 
+import fermbot.brewfather.Brewfather
+import fermbot.orchestrator.SystemStatistics
 import io.micronaut.scheduling.annotation.Scheduled
-import org.slf4j.LoggerFactory
 import javax.inject.Inject
 import javax.inject.Singleton
 

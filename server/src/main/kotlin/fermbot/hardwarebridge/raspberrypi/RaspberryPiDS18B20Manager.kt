@@ -8,9 +8,11 @@ import com.pi4j.temperature.TemperatureScale
 import fermbot.hardwarebridge.DS18B20
 import fermbot.hardwarebridge.DefaultDS18B20TemperatureCorrector
 import fermbot.hardwarebridge.DS18B20Manager
+import fermbot.hardwarebridge.TemperatureCorrector
 import fermbot.toC
 import org.slf4j.LoggerFactory
 import java.time.Instant
+import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
@@ -19,10 +21,8 @@ import javax.inject.Singleton
  * @version 12/11/19
  */
 @Singleton
-class RaspberryPiDS18B20Manager : DS18B20Manager {
+class RaspberryPiDS18B20Manager @Inject constructor(private val corrector: TemperatureCorrector) : DS18B20Manager {
     private val w1master = W1Master()
-
-    private val corrector = DefaultDS18B20TemperatureCorrector
 
     private val logger = LoggerFactory.getLogger(RaspberryPiDS18B20Manager::class.java)
 

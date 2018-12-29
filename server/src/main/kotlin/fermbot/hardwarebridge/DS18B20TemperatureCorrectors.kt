@@ -2,6 +2,8 @@ package fermbot.hardwarebridge
 
 import fermbot.Temperature
 import fermbot.toC
+import org.slf4j.LoggerFactory
+import javax.inject.Singleton
 
 /**
  * From the DS18B20 datasheet we see the following mean error points (in Celsius):
@@ -18,11 +20,12 @@ import fermbot.toC
  * @author Zachary Richards
  * @version 12/11/19
  */
+@Singleton
 object DefaultDS18B20TemperatureCorrector : TemperatureCorrector {
     override val upperBound = 0.0.toC()
     override val lowerBound = 30.0.toC()
 
-    private val correctorDelegate = CustomDS18B20TemperatureCorrector(1.833333e-4, -6.666666e-3, -0.14, lowerBound, upperBound)
+    private val correctorDelegate = DS18B20TemperatureCorrector(1.833333e-4, -6.666666e-3, -0.14, lowerBound, upperBound)
 
     override fun invoke(rawTemp: Temperature): Temperature {
         return correctorDelegate(rawTemp)
@@ -35,12 +38,17 @@ object DefaultDS18B20TemperatureCorrector : TemperatureCorrector {
  * f(x) = ax^2 + bx + c given that x is within the upper and lower bound
  * and the parameters are in relation to celsius
  */
-class CustomDS18B20TemperatureCorrector(val a: Double, val b: Double, val c: Double, override val lowerBound: Temperature, override val upperBound: Temperature) : TemperatureCorrector {
+class DS18B20TemperatureCorrector(val a: Double, val b: Double, val c: Double, override val lowerBound: Temperature, override val upperBound: Temperature) : TemperatureCorrector {
+
+    private val logger = LoggerFactory.getLogger(DS18B20TemperatureCorrector::class.java)
+
     override fun invoke(rawTemp: Temperature): Temperature {
         checkInBounds(rawTemp, this)
         val rawTempCelsius = rawTemp.get(Temperature.Unit.CELSIUS)
         val correctedTemp = (a * rawTempCelsius * rawTempCelsius) + (b * rawTempCelsius) + c
-        return correctedTemp.toC()
+        val temp = correctedTemp.toC()
+        logger.debug("Corrected Temp - rawTemp[{}] a=[{}] b=[{}] c=[{}] => correctedTemp=[{}]", rawTempCelsius, a, b, c, temp)
+        return temp
     }
 
 }

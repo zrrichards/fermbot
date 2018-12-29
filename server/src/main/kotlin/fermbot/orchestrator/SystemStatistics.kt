@@ -1,4 +1,4 @@
-package fermbot
+package fermbot.orchestrator
 /*  Fermbot - Open source fermentation monitoring software.
  *  Copyright (C) 2019 Zachary Richards
  *
@@ -13,10 +13,11 @@ package fermbot
  *  GNU General Public License for more details.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import fermbot.Configuration
+import fermbot.InstantISO8601Serializer
+import fermbot.Tilt
 import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
@@ -46,7 +47,7 @@ class SystemStatistics @Inject constructor(private val configuration: Configurat
         get() = successfulUploads.toDouble() / totalUploads * 100
         set(_) { throw UnsupportedOperationException() }
 
-    @JsonSerialize(using=InstantISO8601Serializer::class, `as`=String::class)
+    @JsonSerialize(using= InstantISO8601Serializer::class, `as`=String::class)
     var lastUploadTime: Instant? = null
 
     fun getUptime(): Duration {
@@ -72,7 +73,7 @@ fun Duration.toPrettyString(): String {
 
 fun main() {
     val config = Configuration()
-val stats =    SystemStatistics(config)
+val stats = SystemStatistics(config)
     stats.lastUploadTime = Instant.now()
     val json = ObjectMapper().writeValueAsString(stats)
     println(json)

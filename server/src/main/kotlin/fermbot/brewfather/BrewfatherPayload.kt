@@ -1,4 +1,4 @@
-package fermbot
+package fermbot.brewfather
 /*  Fermbot - Open source fermentation monitoring software.
  *  Copyright (C) 2019 Zachary Richards
  *
@@ -13,6 +13,8 @@ package fermbot
  *  GNU General Public License for more details.
  */
 
+import fermbot.Configuration
+import fermbot.Temperature
 import javax.inject.Inject
 import javax.inject.Singleton
 
