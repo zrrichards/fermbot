@@ -100,8 +100,6 @@ enum class HeaterCoolerConfiguration(val allowableHeatingModes: List<HeatingMode
 interface TemperatureActuator {
     fun setHeatingMode(heatingMode: HeatingMode): HeatingMode
     val currentHeatingMode : HeatingMode
-    val statistics: TemperatureActuatorStatistics
-    fun resetStatistics()
 }
 
 @Factory

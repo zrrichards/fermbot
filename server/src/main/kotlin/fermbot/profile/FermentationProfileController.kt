@@ -35,7 +35,6 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
                                                         @param:Named(BeanDefinitions.SETPOINT_COMPLETION_PERSISTER) private val setpointCompletionPersister: Persister<SetpointCompletion>,
                                                         private val environment: Environment) {
 
-    val statistics = temperatureActuator.statistics
     private var temperatureControlFuture: ScheduledFuture<*>? = null
     private var fermentationMonitorFuture: ScheduledFuture<*>? = null
 

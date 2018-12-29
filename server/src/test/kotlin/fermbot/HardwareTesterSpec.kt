@@ -3,10 +3,10 @@ package fermbot
 import com.fasterxml.jackson.databind.ObjectMapper
 import fermbot.hardwarebridge.tempcontrol.HardwareBackedTemperatureActuator
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
-import fermbot.hardwarebridge.tempcontrol.TemperatureActuatorStatistics
 import fermbot.monitor.HeatingMode
 import fermbot.orchestrator.HardwareTester
 import fermbot.profile.TemperatureControllerTestPayload
+import io.micronaut.context.annotation.Property
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.HttpClient
@@ -28,6 +28,7 @@ import javax.inject.Inject
  * @version 12/22/19
  */
 @MicronautTest
+@Property(name="fermbot.ds18b20.enabled", value="true")
 open class HardwareTesterSpec {
     @Inject
     lateinit var server: EmbeddedServer
@@ -46,12 +47,6 @@ open class HardwareTesterSpec {
     private lateinit var objectMapper: ObjectMapper
 
     open class MockTemperatureActuator : TemperatureActuator {
-        override val statistics = TemperatureActuatorStatistics()
-
-        override fun resetStatistics() {
-            statistics.reset()
-        }
-
         override var currentHeatingMode = HeatingMode.OFF
 
         override fun setHeatingMode(heatingMode: HeatingMode): HeatingMode {

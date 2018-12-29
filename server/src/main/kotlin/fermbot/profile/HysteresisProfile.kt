@@ -6,6 +6,7 @@ import fermbot.hardwarebridge.tempcontrol.HeaterCoolerConfiguration
 import fermbot.monitor.HeatingMode
 import fermbot.toTemperatureUnit
 import io.micronaut.context.annotation.Property
+import io.micronaut.context.annotation.Value
 import io.micronaut.core.convert.ConversionContext
 import io.micronaut.core.convert.TypeConverter
 import org.slf4j.LoggerFactory
@@ -15,7 +16,7 @@ import javax.inject.Singleton
 import kotlin.math.sign
 
 @Singleton
-class HysteresisProfile @Inject constructor(@Property(name="fermbot.hysteresis.lower") val lowerThreshold: TemperatureWindow, @Property(name="fermbot.hysteresis.upper") val upperThreshold: TemperatureWindow, private val heatingCoolingConfiguration: HeaterCoolerConfiguration) {
+class HysteresisProfile @Inject constructor(@Value("\${fermbot.hysteresis.lower:1F}") val lowerThreshold: TemperatureWindow, @Value("\${fermbot.hysteresis.upper:1F}") val upperThreshold: TemperatureWindow, private val heatingCoolingConfiguration: HeaterCoolerConfiguration) {
 
     private val logger = LoggerFactory.getLogger(HysteresisProfile::class.java)
 

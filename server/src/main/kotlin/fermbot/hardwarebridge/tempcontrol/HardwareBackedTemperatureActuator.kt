@@ -16,9 +16,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class HardwareBackedTemperatureActuator @Inject constructor(@param:Named(BeanDefinitions.HEATER) private val heater: Optional<ActiveHighDigitalOutputDevice>, @param:Named(BeanDefinitions.COOLER) private val cooler: Optional<ActiveHighDigitalOutputDevice>, private val heatingCoolingConfiguration: HeaterCoolerConfiguration) : TemperatureActuator {
-    override val statistics = TemperatureActuatorStatistics()
 
-    override fun resetStatistics() = statistics.reset()
     private var heatingModeLastChanged = Instant.now()
 
     override var currentHeatingMode: HeatingMode = HeatingMode.OFF
@@ -84,7 +82,6 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named(BeanDef
 
         val prevHeatingMode = currentHeatingMode
         currentHeatingMode = heatingMode
-        statistics.addTime(elapsed, currentHeatingMode)
         return prevHeatingMode
     }
 

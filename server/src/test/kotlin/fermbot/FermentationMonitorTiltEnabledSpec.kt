@@ -26,7 +26,7 @@ import javax.inject.Singleton
  */
 
 
-@Property(name="tilt.enabled", value="true")
+@Property(name="fermbot.tilt.enabled", value="true")
 @MicronautTest
 class FermentationMonitorTiltEnabledSpec {
 
@@ -60,7 +60,7 @@ class FermentationMonitorTiltEnabledSpec {
         }
     }
 
-    @Replaces(SimulationDs18b20Manager::class)
+    @Replaces(NullThermometerReader::class)
     @Singleton
     class DS18B20Stub : ThermometerReader {
         override fun getDevices(): Optional<Thermometer> {
