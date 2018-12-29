@@ -19,6 +19,8 @@
 
     <logger name="fermbot" value="debug" />
 
+    <logger name="io.micronaut.context.condition" value="trace" />
+
     <root level="info">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />

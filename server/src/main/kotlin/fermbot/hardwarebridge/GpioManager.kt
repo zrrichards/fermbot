@@ -12,4 +12,10 @@ interface GpioManager {
      * default logic value is LOW
      */
     fun provisionDigitalOutputDevice(pinName: String, name: String): DigitalOutput
+
+
+    /**
+     * shut down the gpio system
+     */
+    fun shutdown()
 }

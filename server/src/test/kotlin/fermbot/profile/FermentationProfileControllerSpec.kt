@@ -1,6 +1,13 @@
 package fermbot.profile
 
+import fermbot.hardwarebridge.tempcontrol.ActiveHighDigitalOutputDevice
+import fermbot.hardwarebridge.tempcontrol.HardwareBackedActiveHighDigitalOutputDevice
+import fermbot.hardwarebridge.tempcontrol.HardwareBackedHeaterCoolerFactory
+import fermbot.hardwarebridge.tempcontrol.HeaterCoolerFactory
+import fermbot.monitor.HeatingMode
 import fermbot.toF
+import io.micronaut.context.annotation.Bean
+import io.micronaut.context.annotation.Factory
 import io.micronaut.context.annotation.Replaces
 import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpRequest.GET
@@ -10,12 +17,15 @@ import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
 import io.micronaut.runtime.server.EmbeddedServer
 import io.micronaut.test.annotation.MicronautTest
+import io.micronaut.test.annotation.MockBean
+import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.Duration
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 
 /**
@@ -24,7 +34,7 @@ import javax.inject.Singleton
  * @version 12/11/19
  */
 @MicronautTest
-class FermentationProfileRestControllerSpec {
+class FermentationProfileControllerSpec {
 
     @Inject
     lateinit var server: EmbeddedServer
@@ -132,6 +142,25 @@ class FermentationProfileRestControllerSpec {
 
     }
 
+    @Factory
+    @Replaces(factory=HardwareBackedHeaterCoolerFactory::class)
+    class TestFactory : HeaterCoolerFactory {
+
+        @Bean
+        @Singleton
+        @Named("heater")
+        override fun createHeater(): ActiveHighDigitalOutputDevice {
+            return mockk()
+        }
+
+        @Bean
+        @Singleton
+        @Named("cooler")
+        override fun createCooler(): ActiveHighDigitalOutputDevice {
+            return mockk()
+        }
+    }
+
     @Test
     fun `persisted profiles are loaded at startup`() {
         val persistedProfile: MutableList<TemperatureSetpoint> = mutableListOf(
@@ -139,11 +168,15 @@ class FermentationProfileRestControllerSpec {
         )
         val mockPersister = MockPersister(persistedProfile)
 
-        val profileController = FermentationProfileRestController(mockPersister)
+        val profileController = FermentationProfileRestController(mockPersister, mockk())
 
         expectThat(profileController.getProfile()).isEqualTo(persistedProfile)
     }
 
-    
+    @Test
+    fun `can test heat for 5 miliseconds`() {
+        val test = TemperatureControllerTestPayload(HeatingMode.HEATING, Duration.ofMillis(5))
+        controller.testTemperatureControl(test)
+    }
 }
 

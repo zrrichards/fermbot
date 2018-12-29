@@ -15,6 +15,8 @@ package fermbot.orchestrator
 
 import fermbot.Application
 import fermbot.Configuration
+import io.micronaut.context.annotation.Property
+import io.micronaut.context.annotation.Value
 import io.micronaut.discovery.event.ServiceStartedEvent
 import io.micronaut.runtime.event.annotation.EventListener
 import org.slf4j.LoggerFactory
@@ -34,8 +36,27 @@ class StartupEventListener {
     @Inject
     private lateinit var configuration: Configuration
 
+    @Value("\${fermbot.banner-enabled:true}") //todo doc
+    private var bannerEnabled = true
+
     @EventListener
     fun startupCompleted(event: ServiceStartedEvent) {
-        logger.info("Started Fermbot. Device name: " + configuration.deviceName)
+        if (bannerEnabled) {
+            logger.info("""
+                
+███████╗███████╗██████╗ ███╗   ███╗██████╗  ██████╗ ████████╗
+██╔════╝██╔════╝██╔══██╗████╗ ████║██╔══██╗██╔═══██╗╚══██╔══╝
+█████╗  █████╗  ██████╔╝██╔████╔██║██████╔╝██║   ██║   ██║   
+██╔══╝  ██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══██╗██║   ██║   ██║   
+██║     ███████╗██║  ██║██║ ╚═╝ ██║██████╔╝╚██████╔╝   ██║   
+╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═════╝  ╚═════╝    ╚═╝   
+""")
+        }
+        logger.info("Started FermBot v0.1. Device name: " + configuration.deviceName)
+        logger.info("""
+Thank you for using the FermBot. This project is licenced under the GPLv3. 
+You may use this software however you wish (even for commercial purposes). However, if you modify it, you
+MUST release the code under the same license. Feel free to submit a Pull Request on Github!
+Please report any issues to https://github.com/zrrichards/fermbot ... Happy fermenting!""".trimIndent())
     }
 }
