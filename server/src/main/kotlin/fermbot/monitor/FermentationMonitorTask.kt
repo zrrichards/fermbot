@@ -34,6 +34,14 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
 
     private val logger = LoggerFactory.getLogger(FermentationMonitorTask::class.java)
 
+    init {
+        if (brewfather.isPresent) {
+            logger.info("Brewfather is configured.")
+        } else {
+            logger.warn("Brewfather is not configured. Fermentation monitoring will only consist of logging to the console")
+        }
+    }
+
     override fun run() {
 
         val tiltOptional = thermoHydrometerReader.readTilt()
@@ -71,7 +79,7 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
 
                 brewfather.get().updateBatchDetails(tempOptional, sgOptional)
             } else {
-                logger.info("Brewfather configured but current temp and specific gravity cannot be read. Nothing to upload.")
+                logger.warn("Brewfather configured but current temp and specific gravity cannot be read. Nothing to upload.")
             }
         } else {
             logger.debug("Brewfather not enabled, nothing to upload")

@@ -79,6 +79,7 @@ class FermentationProfileController @Inject constructor(private val profilePersi
     }
 
     fun clearProfile() {
+        logger.info("Clearing fermentation profile")
         currentProfile.clear()
     }
 

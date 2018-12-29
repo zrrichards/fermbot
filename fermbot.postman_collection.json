@@ -1,0 +1,143 @@
+{
+	"info": {
+		"_postman_id": "1ea82cef-e62d-4f7c-a334-a6faea870502",
+		"name": "Fermbot",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Hardware Test",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"stepDuration\":\"PT0.001S\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/test/full-hardware",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"test",
+						"full-hardware"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Set Profile",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"tempSetpoint\": \"48F\",\n        \"untilSg\": 1.023,\n        \"stageDescription\": \"Primary\"\n    },\n    {\n        \"tempSetpoint\": \"62F\",\n        \"duration\": \"P2D\",\n        \"stageDescription\": \"Diacetyl Rest\",\n        \"includeRamp\": false\n    },\n    {\n        \"tempSetpoint\": \"34F\",\n        \"duration\": \"P14D\",\n        \"stageDescription\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/profile",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Profile",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"tempSetpoint\": \"48F\",\n        \"untilSg\": 1.023,\n        \"stageDescription\": \"Primary\"\n    },\n    {\n        \"tempSetpoint\": \"62F\",\n        \"duration\": \"P2D\",\n        \"stageDescription\": \"Diacetyl Rest\",\n        \"includeRamp\": false\n    },\n    {\n        \"tempSetpoint\": \"34F\",\n        \"duration\": \"P14D\",\n        \"stageDescription\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/profile",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reset",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"tempSetpoint\": \"48F\",\n        \"untilSg\": 1.023,\n        \"stageDescription\": \"Primary\"\n    },\n    {\n        \"tempSetpoint\": \"62F\",\n        \"duration\": \"P2D\",\n        \"stageDescription\": \"Diacetyl Rest\",\n        \"includeRamp\": false\n    },\n    {\n        \"tempSetpoint\": \"34F\",\n        \"duration\": \"P14D\",\n        \"stageDescription\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/profile",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"profile"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

@@ -68,7 +68,7 @@ class StateController @Inject constructor (private val fermentationProfileContro
     @Post("/reset")
     fun reset() {
         checkState(State.READY)
-        //do reset
+        fermentationProfileController.clearProfile()
         setState(State.PENDING_PROFILE)
     }
 

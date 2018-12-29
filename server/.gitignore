@@ -14,3 +14,4 @@ out/
 *.log
 *.pyc
 src/main/resources/application.yml
+.current-profile.json
