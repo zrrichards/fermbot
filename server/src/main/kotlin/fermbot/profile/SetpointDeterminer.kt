@@ -34,6 +34,9 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
 
     init {
         logger.info("Initializing SetpointDeterminer")
+        if (currentSetpointCompletion.currentSetpointIndex > setpoints.lastIndex) {
+            throw IllegalStateException("Previous fermentation has been completed. Please set a new profile. Cannot start an already completed profile")
+        }
         val setpointFromProfile = setpoints[currentSetpointCompletion.currentSetpointIndex]
         if (currentSetpointCompletion.setpont != setpointFromProfile) {
             logger.info("Setpoint mismatch from persisted data. Loaded from file: ${currentSetpointCompletion.setpont}. Set in the current profile: $setpointFromProfile. Ignoring persisted data")
@@ -45,12 +48,12 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
         if (isCurrentStageFulfilled(hydrometer)) {
             val stageName = currentStage.stageDescription.defaultIfEmpty("$currentSetpointIndex")
             logger.info("""Fermentation stage "$stageName" fulfilled. Moving to next stage""")
-            if (currentSetpointIndex == setpoints.lastIndex) {
+            if (currentSetpointIndex >= setpoints.lastIndex) {
                 logger.warn("You are currently at the last setpoint and it has been completed. Continuing to hold temp constant at the current setpoint (${currentStage.tempSetpoint}). Is your batch done?")
-            } else {
-                currentSetpointCompletion = currentSetpointCompletion.toNextStage()
-                setpointCompletionPersister.persist(currentSetpointCompletion)
             }
+
+            currentSetpointCompletion = currentSetpointCompletion.toNextStage()
+            setpointCompletionPersister.persist(currentSetpointCompletion)
         }
         return currentStage
     }
@@ -85,7 +88,14 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
         }
     }
 
-    private fun SetpointCompletion.toNextStage() = SetpointCompletion(setpoints[this.currentSetpointIndex + 1], this.currentSetpointIndex + 1)
+    private fun SetpointCompletion.toNextStage(): SetpointCompletion {
+        val nextSetpoint = if (currentSetpointIndex == setpoints.lastIndex) {
+            null
+        } else {
+            setpoints[currentSetpointIndex + 1]
+        }
+        return SetpointCompletion(nextSetpoint, this.currentSetpointIndex + 1)
+    }
 
     val currentStage
         get() = setpoints[currentSetpointIndex]
@@ -100,7 +110,7 @@ private fun String.defaultIfEmpty(s: String) = if (isEmpty()) { s } else { this 
  * 2. At what time was the previous stage completed (i.e. setpoint -1)
  *   -We need this info so we can do setpoints for a specific amount of time (i.e. 2 days)
  */
-data class SetpointCompletion(val setpont: TemperatureSetpoint, val currentSetpointIndex: Int, val previousSetpointCompletionTime: Instant = Instant.now())
+data class SetpointCompletion(val setpont: TemperatureSetpoint?, val currentSetpointIndex: Int, val previousSetpointCompletionTime: Instant = Instant.now())
 
 @Singleton
 @Named(BeanDefinitions.SETPOINT_COMPLETION_PERSISTER)

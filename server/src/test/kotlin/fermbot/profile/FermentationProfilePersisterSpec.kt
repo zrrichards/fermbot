@@ -47,7 +47,7 @@ class FermentationProfilePersisterSpec {
     @Test
     fun `can append snapshot to file`() {
         val snapshot = FermentationSnapshot(temp = 48.0.toF(),currentSg=1.056, heatingMode = HeatingMode.OFF,
-                currentSetpoint = TimeBasedSetpoint(65.0.toF(), Duration.ofDays(2), includeRamp = false))
+                currentSetpointIndex=0)
         persister.append(snapshot)
         expectThat(persister.readAll()).isEqualTo(listOf(snapshot))
     }
