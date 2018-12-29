@@ -1,4 +1,4 @@
-package fermbot
+package fermbot.hardwarebridge.raspberrypi
 /*  Fermbot - Open source fermentation monitoring software.
  *  Copyright (C) 2019 Zachary Richards
  *
@@ -14,6 +14,9 @@ package fermbot
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fermbot.Configuration
+import fermbot.hardwarebridge.Tilt
+import fermbot.hardwarebridge.TiltReader
 import java.io.BufferedReader
 import java.io.File
 import java.nio.file.Paths
@@ -23,15 +26,15 @@ import javax.inject.Singleton
 import kotlin.io.readText
 
 /**
- *
+ * This class is the bride to the python-based tilt code on the raspberry pi
  * @version $ 12/5/19
  */
 @Singleton
-class TiltReader @Inject constructor(configuration: Configuration) {
+class RaspberryPiTiltReader @Inject constructor(configuration: Configuration) : TiltReader {
 
     private val pathToPytiltScript = configuration.pytiltScriptPath
 
-    fun readTilt(): Tilt {
+    override fun readTilt(): Tilt {
         val pytiltScript = "$pathToPytiltScript/pytilt.py"
         val process = ProcessBuilder("python", pytiltScript).start()
         val exited = process.waitFor(10, TimeUnit.SECONDS)

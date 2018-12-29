@@ -26,6 +26,14 @@ data class Temperature(private val value: Double, val unit: Unit) {
             this.unit.converter(value)
         }
     }
+
+    /**
+     * Returns temperature in the format of:
+     * "64.8F", "43.0C" etc.
+     */
+    override fun toString() : String {
+        return "$value${unit.symbol}"
+    }
 }
 
 fun fromSymbol(symbol: String): Temperature.Unit {

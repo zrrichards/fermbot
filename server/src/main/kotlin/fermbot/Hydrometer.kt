@@ -1,4 +1,7 @@
 package fermbot
+
+import java.time.Instant
+
 /*  Fermbot - Open source fermentation monitoring software.
  *  Copyright (C) 2019 Zachary Richards
  *
@@ -22,5 +25,10 @@ interface Hydrometer {
      * Returns specific gravity in the format of 1.095
      */
     val specificGravity: Double
+
+    /**
+     * Represents when the value was read
+     */
+    val timestamp: Instant
 }
 

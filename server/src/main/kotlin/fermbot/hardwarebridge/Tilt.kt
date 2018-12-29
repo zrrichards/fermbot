@@ -1,4 +1,4 @@
-package fermbot
+package fermbot.hardwarebridge
 /*  Fermbot - Open source fermentation monitoring software.
  *  Copyright (C) 2019 Zachary Richards
  *
@@ -13,6 +13,9 @@ package fermbot
  *  GNU General Public License for more details.
  */
 
+import fermbot.Hydrometer
+import fermbot.Thermometer
+import fermbot.toF
 import java.beans.ConstructorProperties
 import java.time.Instant
 
@@ -20,11 +23,9 @@ import java.time.Instant
  * @author Zachary Richards
  */
 class Tilt @ConstructorProperties("color", "sg", "temp") constructor(private val color: TiltColors,
-      override val specificGravity: Double, rawTemp: Double) : Thermometer, Hydrometer {
+                                                                     override val specificGravity: Double, rawTemp: Double, override val timestamp: Instant = Instant.now()) : Thermometer, Hydrometer {
 
-    override val currentTemp = rawTemp.toF()
-
-    override val timestamp = Instant.now()!!
+    override val currentTemp = rawTemp.toF() //Tilt readings are always given in Fahrenheit
 
     override fun toString(): String {
         return "Tilt(color=$color, specificGravity=$specificGravity, currentTemp=$currentTemp, timestamp=$timestamp)"

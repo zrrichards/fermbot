@@ -1,9 +1,5 @@
 package fermbot.profile
 
-import fermbot.fermentationprofile.FermentationProfileController
-import fermbot.fermentationprofile.SpecificGravityBasedSetpoint
-import fermbot.fermentationprofile.TemperatureSetpoint
-import fermbot.fermentationprofile.TimeBasedSetpoint
 import fermbot.toF
 import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpRequest.GET
@@ -32,7 +28,7 @@ class FermentationProfileRestControllerSpec {
     lateinit var server: EmbeddedServer
 
     @Inject
-    lateinit var controller: FermentationProfileController
+    lateinit var controller: FermentationProfileRestController
 
     @Inject
     @field:Client("/")

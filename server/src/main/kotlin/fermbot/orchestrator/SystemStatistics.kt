@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import fermbot.Configuration
 import fermbot.InstantISO8601Serializer
-import fermbot.Tilt
+import fermbot.hardwarebridge.Tilt
 import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject

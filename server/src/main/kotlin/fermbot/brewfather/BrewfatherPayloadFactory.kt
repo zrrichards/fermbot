@@ -18,20 +18,19 @@ import fermbot.Temperature
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * POJO that represents Brewfather customer stream. This value can be sent via POST to the batch for logging
- * Do not modify variable names in this class, you will break Breafather integration
- * @author Zachary Richards
- */
-data class BrewfatherPayload(val name: String, val rawTemp: Double, val gravity: Double) {
-   val temp_unit = "F"
-   val gravity_unit = "G"
-}
-
 @Singleton
 class BrewfatherPayloadFactory @Inject constructor(private val configuration: Configuration) {
 
    fun createBrewfatherPayload(temp: Temperature, gravity: Double): BrewfatherPayload {
-      return BrewfatherPayload(configuration.deviceName, temp.get(Temperature.Unit.FAHRENHEIT), gravity)
+      return BrewfatherPayload(configuration.deviceName, temp.get(Temperature.Unit.FAHRENHEIT), gravity, Temperature.Unit.FAHRENHEIT.symbol)
    }
+}
+
+/**
+ * POJO that represents Brewfather customer stream. This value can be sent via POST to the batch for logging
+ * Do not modify variable names in this class, you will break Brewfather integration
+ * @author Zachary Richards
+ */
+data class BrewfatherPayload(val name: String, val temp: Double, val gravity: Double, val temp_unit: String) {
+   val gravity_unit = "G"
 }

@@ -1,16 +1,14 @@
-package fermbot.fermentationprofile
+package fermbot.profile
 
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.*
-import com.fasterxml.jackson.module.kotlin.readValue
 import fermbot.Temperature
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
 import org.slf4j.LoggerFactory
-import java.nio.file.Paths
 import java.time.Duration
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,29 +19,17 @@ import javax.inject.Singleton
  * @version 12/11/19
  */
 @Controller("/profile")
-class FermentationProfileController @Inject constructor(private val objectMapper: ObjectMapper){
-    val currentProfileFile = Paths.get(".current-profile.json").toFile()
-    val currentProfile: MutableList<TemperatureSetpoint>
-
-    private val logger = LoggerFactory.getLogger(FermentationProfileController::class.java)
-
-    init {
-        currentProfile = if (currentProfileFile.exists()) {
-            logger.info("Reading fermentation profile from: {}", currentProfileFile.absolutePath)
-            readFromFile()
-        } else {
-            logger.info("Current fermentation profile file: {}", currentProfileFile.absolutePath)
-            mutableListOf()
-        }
+class FermentationProfileRestController @Inject constructor(private val profilePersister: ProfilePersister) {
+    private val currentProfile: MutableList<TemperatureSetpoint> = if (profilePersister.hasPersistedProfile()) {
+        profilePersister.readProfile().toMutableList()
+    } else {
+        mutableListOf()
     }
 
-    private fun readFromFile(): MutableList<TemperatureSetpoint> {
-        return try {
-            objectMapper.readValue<List<TemperatureSetpoint>>(currentProfileFile).toMutableList()
-        } catch (e: Exception) {
-            logger.warn("Error loading existing profile. Setting current profile to empty", e)
-            mutableListOf()
-        }
+    private val logger = LoggerFactory.getLogger(FermentationProfileRestController::class.java)
+
+    init {
+        logger.info("CurrentProfile:{}", currentProfile)
     }
 
     @Get("/")
@@ -58,12 +44,7 @@ class FermentationProfileController @Inject constructor(private val objectMapper
             addAll(stages)
         }
         logger.info("Fermentation profile changed to: {}", currentProfile)
-        writeToFile()
-    }
-
-    private fun writeToFile() {
-        logger.debug("Writing profile to file")
-        currentProfileFile.writeText(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(currentProfile))
+        profilePersister.persistProfile(currentProfile)
     }
 
     fun clearProfile() {

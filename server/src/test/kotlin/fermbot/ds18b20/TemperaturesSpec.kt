@@ -1,8 +1,11 @@
 package fermbot.ds18b20
 
 import fermbot.Temperature
+import fermbot.fromSymbol
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import strikt.api.expectThat
+import strikt.assertions.isEqualTo
 
 
 /**
@@ -36,11 +39,9 @@ class TemperaturesSpec {
         assertEquals("F", Temperature.Unit.FAHRENHEIT.symbol)
     }
 
-    //TODO
-//    add same unit
-//    add different unit -- exception
-//    subtract same unit
-//    subtract different unit --exception
-//    multiply same unit
-//    multiply different unit --exception
+    @Test
+    fun `can get unit from symbol`() {
+        expectThat(fromSymbol("C")).isEqualTo(Temperature.Unit.CELSIUS)
+        expectThat(fromSymbol("F")).isEqualTo(Temperature.Unit.FAHRENHEIT)
+    }
 }
