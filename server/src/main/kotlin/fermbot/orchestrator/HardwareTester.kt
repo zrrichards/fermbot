@@ -1,6 +1,7 @@
 package fermbot.orchestrator
 
 import fermbot.hardwarebridge.ThermometerReader
+import fermbot.hardwarebridge.tempcontrol.HeaterCoolerConfiguration
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.HeatingMode
 import fermbot.profile.TemperatureControllerTestPayload
@@ -19,7 +20,7 @@ import javax.inject.Inject
  * @version 12/22/19
  */
 @Controller("/test")
-class HardwareTester @Inject constructor(private val temperatureActuator: TemperatureActuator, private val thermometerManager: ThermometerReader) {
+class HardwareTester @Inject constructor(private val temperatureActuator: TemperatureActuator, private val thermometerManager: ThermometerReader, private val heaterCoolerConfiguration: HeaterCoolerConfiguration) {
 
     private val logger = LoggerFactory.getLogger(HardwareTester::class.java)
 
@@ -43,9 +44,12 @@ class HardwareTester @Inject constructor(private val temperatureActuator: Temper
 
     @Post("/full-hardware")
     fun testFullHardware(@Body heatingTestPayload: HeatingTestPayload) {
+        check (heaterCoolerConfiguration != HeaterCoolerConfiguration.NONE) {
+            "No heating or cooling device configured. Cannot do hardware test"
+        }
         val stepDuration = heatingTestPayload.stepDuration
-        val reps = HeatingMode.values().size * 3 //3 heating modes 3 times
-        logger.info("\n\n\n===== Starting hardware test. Repeating $reps times. Step duration: ${stepDuration.seconds} seconds =====")
+        val reps = heaterCoolerConfiguration.allowableHeatingModes.size * 3 //3 heating modes 3 times
+        logger.info("\n\n\n===== Starting hardware test. Repeating $reps times. Step duration: ${stepDuration.seconds} seconds. Heating/Cooling Devices Configured: $heaterCoolerConfiguration =====")
         repeat(reps) { currentRep ->
             val modeToTest = getHeatingModeToTest(currentRep)
             logger.info("Activating heating mode: $modeToTest")
@@ -70,8 +74,8 @@ class HardwareTester @Inject constructor(private val temperatureActuator: Temper
     private fun getHeatingModeToTest(currentRep: Int): HeatingMode {
 
         //FIXME ignore modes that aren't configured
-        val index = currentRep.rem(HeatingMode.values().size)
-        return HeatingMode.values()[index]
+        val index = currentRep.rem(heaterCoolerConfiguration.allowableHeatingModes.size)
+        return heaterCoolerConfiguration.allowableHeatingModes[index]
     }
 }
 

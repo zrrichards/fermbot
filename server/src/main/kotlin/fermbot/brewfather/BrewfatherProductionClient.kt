@@ -16,6 +16,7 @@ package fermbot.brewfather
 import com.fasterxml.jackson.databind.ObjectMapper
 import fermbot.*
 import fermbot.orchestrator.SystemStatistics
+import fermbot.profile.FermbotProperties
 import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Requires
 import io.micronaut.http.HttpRequest.POST
@@ -35,7 +36,7 @@ import javax.inject.Singleton
  */
 @Singleton
 @Requires(property="brewfather.enabed", value="true")
-class BrewfatherProductionClient @Inject constructor(@Property(name="brewfather.custom-stream-id") private val brewfatherCustomStreamId: String, private val brewfatherPayloadFactory: BrewfatherPayloadFactory) : Brewfather {
+class BrewfatherProductionClient @Inject constructor(@Property(name= FermbotProperties.brewfatherCustomStreamId) private val brewfatherCustomStreamId: String, private val brewfatherPayloadFactory: BrewfatherPayloadFactory) : Brewfather {
 
     private val BREWFATHER_URL = "http://log.brewfather.net/stream?id=$brewfatherCustomStreamId"
 

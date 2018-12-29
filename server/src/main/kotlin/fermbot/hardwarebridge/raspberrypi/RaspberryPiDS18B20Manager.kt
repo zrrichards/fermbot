@@ -7,6 +7,8 @@ import com.pi4j.io.w1.W1Master
 import com.pi4j.temperature.TemperatureScale
 import fermbot.Thermometer
 import fermbot.hardwarebridge.*
+import fermbot.profile.Environments
+import fermbot.profile.FermbotProperties
 import fermbot.toC
 import io.micronaut.context.annotation.Requires
 import org.slf4j.LoggerFactory
@@ -21,7 +23,7 @@ import javax.inject.Singleton
  * @version 12/11/19
  */
 @Singleton
-@Requires(env=["Raspberry-Pi"], property="fermbot.ds18b20.enabled", value="true")
+@Requires(env=[Environments.RASPBERRY_PI], property= FermbotProperties.isDs18b20Enabled, value="true")
 class RaspberryPiDS18B20Manager @Inject constructor(private val corrector: TemperatureCorrector) : ThermometerReader {
 
     private val w1master = W1Master()

@@ -78,7 +78,10 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
             output.append("Tilt reading ${tiltHigh.toStringF()} higher than thermometer")
         }
 
+        if (output.isNotEmpty()) {
             logger.info(output.toString())
+        }
+
         if (fermentationProfileController != null) {
             queue.add(FermentationSnapshot(
                 currentSg = currentSg,

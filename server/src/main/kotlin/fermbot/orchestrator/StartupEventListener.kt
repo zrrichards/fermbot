@@ -13,30 +13,25 @@ package fermbot.orchestrator
  *  GNU General Public License for more details.
  */
 
-import fermbot.Application
 import fermbot.DeviceInfo
-import io.micronaut.context.annotation.Property
-import io.micronaut.context.annotation.Value
-import io.micronaut.discovery.event.ServiceStartedEvent
-import io.micronaut.runtime.event.annotation.EventListener
+import io.micronaut.context.annotation.Context
+import io.micronaut.context.env.Environment
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  *
  * @author Zachary Richards
  * @version $ 12/9/19
  */
-@Singleton
-class StartupEventListener @Inject constructor(deviceInfo: DeviceInfo) {
+@Context
+class StartupEventListener @Inject constructor(deviceInfo: DeviceInfo, environment: Environment) {
 
     private val logger = LoggerFactory.getLogger(StartupEventListener::class.java)
 
     private var deviceName = deviceInfo.deviceName
 
-    @EventListener
-    fun startupCompleted(event: ServiceStartedEvent) {
+    init {
         logger.info("""
                                                 __    
                                         _(\    |@@|
@@ -55,5 +50,10 @@ Thank you for using the FermBot. This project is licenced under the GPLv3.
 You may use this software however you wish (even for commercial purposes). However, if you modify it, you
 MUST release the code under the same license. Feel free to submit a Pull Request on Github!
 Please report any issues to https://github.com/zrrichards/fermbot ... Happy fermenting!""".trimIndent())
+        logger.info("===== FERMBOT CONFIGURATION =====")
+        environment.getProperties("fermbot").forEach {
+            logger.info("""${it.key}: ${it.value}""")
+        }
+        logger.info("=================================")
     }
 }

@@ -7,6 +7,7 @@ import fermbot.hardwarebridge.*
 import fermbot.hardwarebridge.raspberrypi.RaspberryPiTiltReader
 import fermbot.hardwarebridge.simulation.SimulationDs18b20Manager
 import fermbot.monitor.FermentationMonitorTask
+import fermbot.profile.FermbotProperties
 import fermbot.profile.toOptional
 import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Replaces
@@ -26,7 +27,7 @@ import javax.inject.Singleton
  */
 
 
-@Property(name="fermbot.tilt.enabled", value="true")
+@Property(name= FermbotProperties.isTiltEnabled, value="true")
 @MicronautTest
 class FermentationMonitorTiltEnabledSpec {
 

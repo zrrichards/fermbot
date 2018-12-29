@@ -5,6 +5,7 @@ import com.pi4j.io.gpio.Pin
 import fermbot.hardwarebridge.DigitalOutput
 import fermbot.hardwarebridge.GpioManager
 import fermbot.hardwarebridge.raspberrypi.RaspberryPiGpioManager
+import fermbot.profile.Environments
 import io.micronaut.context.annotation.Requires
 import org.slf4j.LoggerFactory
 import javax.inject.Singleton
@@ -15,7 +16,7 @@ import javax.inject.Singleton
  * @version 12/22/19
  */
 @Singleton
-@Requires(notEnv=["Raspberry-Pi"])
+@Requires(notEnv=[Environments.RASPBERRY_PI])
 class SimulationGpioManager : GpioManager {
 
     private val logger = LoggerFactory.getLogger(RaspberryPiGpioManager::class.java)

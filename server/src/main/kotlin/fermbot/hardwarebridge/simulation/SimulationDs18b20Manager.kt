@@ -5,6 +5,7 @@ import fermbot.hardwarebridge.DS18B20
 import fermbot.hardwarebridge.ThermometerReader
 import fermbot.monitor.HeatingMode
 import fermbot.profile.Environments
+import fermbot.profile.FermbotProperties
 import fermbot.profile.FermentationProfileController
 import fermbot.toF
 import io.micronaut.context.annotation.Requires
@@ -21,7 +22,7 @@ import kotlin.random.Random
  * @version 12/22/19
  */
 @Singleton
-@Requires(env=[Environments.SIMULATION])
+@Requires(env=[Environments.SIMULATION], property= FermbotProperties.isDs18b20Enabled, value="true")
 class SimulationDs18b20Manager : ThermometerReader {
     private val logger = LoggerFactory.getLogger(SimulationDs18b20Manager::class.java)
 

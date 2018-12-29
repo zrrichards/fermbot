@@ -18,6 +18,8 @@ import fermbot.hardwarebridge.ThermoHydrometer
 import fermbot.hardwarebridge.ThermoHydrometerReader
 import fermbot.hardwarebridge.Tilt
 import fermbot.hardwarebridge.TiltColors
+import fermbot.profile.Environments
+import fermbot.profile.FermbotProperties
 import io.micronaut.context.annotation.Primary
 import io.micronaut.context.annotation.Requires
 import io.micronaut.context.annotation.Value
@@ -28,6 +30,7 @@ import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.File
 import java.nio.file.Paths
+import java.time.Instant
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -38,7 +41,7 @@ import kotlin.io.readText
  * @version $ 12/5/19
  */
 @Singleton
-@Requires(env=["Raspberry-Pi"], property="fermbot.tilt.enabled", value="true")
+@Requires(env=[Environments.RASPBERRY_PI], property= FermbotProperties.isTiltEnabled, value="true")
 class RaspberryPiTiltReader : ThermoHydrometerReader {
 
     private val logger = LoggerFactory.getLogger(RaspberryPiTiltReader::class.java)
@@ -72,7 +75,7 @@ class RaspberryPiTiltReader : ThermoHydrometerReader {
 
 @Singleton
 @Primary
-@Requires(property="fermbot.tilt.enabled", notEquals="true")
+@Requires(property=FermbotProperties.isTiltEnabled, notEquals="true")
 class NullTiltReader : ThermoHydrometerReader {
 
     private val logger = LoggerFactory.getLogger(NullTiltReader::class.java)
@@ -89,20 +92,34 @@ class NullTiltReader : ThermoHydrometerReader {
 
 @Singleton
 @Controller
-@Requires(env=["simulation"], property="fermbot.tilt.enabled", value="true")
+@Requires(env=[Environments.SIMULATION], property=FermbotProperties.isTiltEnabled, value="true")
 class SimulationTiltReader : ThermoHydrometerReader {
 
     private val logger = LoggerFactory.getLogger(SimulationTiltReader::class.java)
 
-    private var nextValue = 1.070
+    private val og = 1.070
+    private val fg = 1.020
+    private var decayFactor = 0.01
+    private var decayAmount = 1 - decayFactor
 
     init {
         logger.info("Initializing SimulationTiltReader")
     }
 
+    private var tilt: Optional<ThermoHydrometer> = createTilt(og)
+
     override fun readTilt(): Optional<ThermoHydrometer> {
-        val tilt: Optional<ThermoHydrometer> = Optional.of(Tilt(color = TiltColors.BLACK, specificGravity = nextValue, rawTemp = 45.2))
-        nextValue -= (nextValue - 1) * 0.02
+        if (tilt.get().timestamp < Instant.now().minusMillis(6)) {
+            refresh()
+        }
         return tilt
     }
+
+    private fun refresh() {
+        val nextValue = (og - fg) * decayAmount + fg
+        decayAmount *= decayAmount
+        tilt = createTilt(nextValue)
+    }
+
+    private fun createTilt(nextValue: Double): Optional<ThermoHydrometer> = Optional.of(Tilt(color = TiltColors.BLACK, specificGravity = nextValue, rawTemp = 45.2))
 }

@@ -5,6 +5,7 @@ import fermbot.hardwarebridge.tempcontrol.HardwareBackedTemperatureActuator
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.HeatingMode
 import fermbot.orchestrator.HardwareTester
+import fermbot.profile.FermbotProperties
 import fermbot.profile.TemperatureControllerTestPayload
 import io.micronaut.context.annotation.Property
 import io.micronaut.http.HttpRequest
@@ -28,7 +29,7 @@ import javax.inject.Inject
  * @version 12/22/19
  */
 @MicronautTest
-@Property(name="fermbot.ds18b20.enabled", value="true")
+@Property(name= FermbotProperties.isDs18b20Enabled, value="true")
 open class HardwareTesterSpec {
     @Inject
     lateinit var server: EmbeddedServer

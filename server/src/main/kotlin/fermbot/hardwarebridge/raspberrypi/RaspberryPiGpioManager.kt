@@ -3,6 +3,7 @@ package fermbot.hardwarebridge.raspberrypi
 import com.pi4j.io.gpio.*
 import fermbot.hardwarebridge.DigitalOutput
 import fermbot.hardwarebridge.GpioManager
+import fermbot.profile.Environments
 import io.micronaut.context.annotation.Requires
 import org.slf4j.LoggerFactory
 import javax.annotation.PreDestroy
@@ -14,7 +15,7 @@ import javax.inject.Singleton
  * @version 12/12/19
  */
 @Singleton
-@Requires(env=["Raspberry-Pi"])
+@Requires(env=[Environments.RASPBERRY_PI])
 class RaspberryPiGpioManager : GpioManager {
 
     private val logger = LoggerFactory.getLogger(RaspberryPiGpioManager::class.java)
