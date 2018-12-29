@@ -13,6 +13,7 @@ package fermbot.orchestrator
  *  GNU General Public License for more details.
  */
 
+import fermbot.profile.FermentationProfileRestController
 import io.micronaut.context.annotation.Context
 import io.micronaut.scheduling.annotation.Scheduled
 import org.slf4j.LoggerFactory
@@ -32,8 +33,12 @@ class SystemStateReporter {
     @Inject
     private lateinit var systemStatistics: SystemStatistics
 
+    @Inject
+    private lateinit var profileController: FermentationProfileRestController
+
     @Scheduled(fixedRate="1h", initialDelay="1m")
     fun reportOnSystemState() {
+        profileController.getCurrentHeatingMode()
        logger.info("Uptime: ${systemStatistics.getUptime().toPrettyString()}\tSuccessful Brewfather uploads (${systemStatistics.successfulUploads}/${systemStatistics.totalUploads}) -- ${systemStatistics.successfulUploadPercentage}%")
     }
 }

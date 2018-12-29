@@ -8,6 +8,9 @@ import io.micronaut.context.annotation.Factory
 import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Value
 import org.slf4j.LoggerFactory
+import java.lang.Thread.sleep
+import java.time.Duration
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -22,6 +25,11 @@ interface ActiveHighDigitalOutputDevice {
     fun isEnabled(): Boolean
     fun enable()
     fun disable()
+
+    fun isDisabled() : Boolean {
+        return !isEnabled()
+    }
+
 }
 
 class HardwareBackedActiveHighDigitalOutputDevice(private val outputPin: DigitalOutput) : ActiveHighDigitalOutputDevice {
@@ -59,17 +67,23 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater
      */
     override fun setHeatingMode(heatingMode: HeatingMode) : HeatingMode {
         logger.debug("Setting heating mode to: {}", heatingMode)
+
+        /* Ensure disable is called first so that there is no time when both are enabled simultaneously
+         * Also, put a small pause to ensure that the pin has time to set to low before enabling the other device
+         */
         when (heatingMode) {
             HeatingMode.OFF -> {
                 heater.disable()
                 cooler.disable()
             }
             HeatingMode.HEATING -> {
-                heater.enable()
                 cooler.disable()
+                sleep(100)
+                heater.enable()
             }
             HeatingMode.COOLING -> {
                 heater.disable()
+                sleep(100)
                 cooler.enable()
             }
         }
@@ -90,7 +104,7 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater
 /**
  * The way to control heating and cooling for the FermBot. This is the **ONLY** way you should attempt
  * to enable or disable heating and cooling. Since the heater and cooler are their own digital devices,
- * nothing inherently prevents both from being enabled at the same time. This actuator ensure that
+ * nothing inherently prevents both from being enabled at the same time. This actuator ensures that
  * cannot happen. Do not manipulate the heater and cooler directly under any circumstances.
  */
 interface TemperatureActuator {

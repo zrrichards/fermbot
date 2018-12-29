@@ -57,7 +57,7 @@ class FermentationProfileRestController @Inject constructor(private val profileP
         currentProfile.clear()
     }
 
-
+    fun getCurrentHeatingMode() = temperatureActuator.getCurrentHeatingMode()//FIXME I don't really like reaching through the rest controller
 }
 
 @Singleton
