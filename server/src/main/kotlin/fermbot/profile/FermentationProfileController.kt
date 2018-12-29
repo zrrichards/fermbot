@@ -7,8 +7,10 @@ import fermbot.Temperature
 import fermbot.cascadeOptionals
 import fermbot.hardwarebridge.ThermoHydrometerReader
 import fermbot.hardwarebridge.ThermometerReader
+import fermbot.hardwarebridge.simulation.SimulationDs18b20Manager
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.FermentationMonitorTask
+import io.micronaut.context.env.Environment
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.scheduling.TaskExecutors
@@ -25,19 +27,23 @@ import javax.inject.Singleton
  * @author Zachary Richards
  * @version 12/11/19
  */
-@Controller
-class FermentationProfileController @Inject constructor(private val profilePersister: Persister<List<TemperatureSetpoint>>, private val temperatureActuator: TemperatureActuator, private val hydrometerReader: ThermoHydrometerReader, private val hysteresisProfile: HysteresisProfile,
+@Controller //TODO fix this god object
+class FermentationProfileController @Inject constructor(@param:Named(BeanDefinitions.PROFILE_PERSISTER) private val profilePersister: Persister<List<TemperatureSetpoint>>,
+                                                        private val temperatureActuator: TemperatureActuator,
+                                                        private val hydrometerReader: ThermoHydrometerReader,
+                                                        private val hysteresisProfile: HysteresisProfile,
                                                         private val thermometerReader: ThermometerReader,
                                                         @param:Named(TaskExecutors.SCHEDULED) private val taskScheduler: TaskScheduler,
-                                                        private val fermentationMonitorTask: FermentationMonitorTask) {
+                                                        private val fermentationMonitorTask: FermentationMonitorTask,
+                                                        @param:Named(BeanDefinitions.SETPOINT_COMPLETION_PERSISTER) private val setpointCompletionPersister: Persister<SetpointCompletion>,
+                                                        private val environment: Environment) {
 
     private val BREWFATHER_UPLOAD_PERIOD = Duration.ofSeconds(15 * 60 + 10) //15 minutes + a few seconds as a buffer
 
-    private val currentProfile: MutableList<TemperatureSetpoint> = if (profilePersister.hasPersistedData()) {
-        profilePersister.read().toMutableList()
-    } else {
-        mutableListOf()
-    }
+    val currentSetpoint: TemperatureSetpoint
+        get() = setpointDeterminer.currentStage
+
+    private val currentProfile = profilePersister.loadOrElse(mutableListOf()).toMutableList()
 
     private val logger = LoggerFactory.getLogger(FermentationProfileController::class.java)
 
@@ -46,6 +52,9 @@ class FermentationProfileController @Inject constructor(private val profilePersi
     init {
         logger.info("CurrentProfile: {}", if (currentProfile.isEmpty()) { "[empty]" } else { currentProfile })
         fermentationMonitorTask.run() //initial post to brewfather so device is visible
+        if (thermometerReader is SimulationDs18b20Manager) { //if we're simulating temperature, pass this instance to the thermometer.
+            thermometerReader.fermentationProfileController = this
+        }
     }
 
     @Get("/profile")
@@ -61,21 +70,26 @@ class FermentationProfileController @Inject constructor(private val profilePersi
         }
         logger.info("Fermentation profile changed to: {}", currentProfile)
         profilePersister.persist(currentProfile)
+        setpointCompletionPersister.clear()
     }
 
     /**
      * Actually starts the fermentation controller and set point
      */
     fun start() {
-        val fermentationStart = Instant.now()
-        setpointDeterminer = SetpointDeterminer(currentProfile, 0, fermentationStart) //TODO this is hardcoding that fermentation started now
+        setpointDeterminer = SetpointDeterminer(currentProfile, setpointCompletionPersister)
         logger.info("Starting fermentation profile")
         val temperatureControlTask = TemperatureControlTask(
                 setpointDeterminer, hydrometerReader, hysteresisProfile, thermometerReader, temperatureActuator
         )
         temperatureControlTask.run()
-        taskScheduler.scheduleAtFixedRate(Duration.ofMinutes(10), Duration.ofMinutes(10), temperatureControlTask)
-        taskScheduler.scheduleAtFixedRate(BREWFATHER_UPLOAD_PERIOD, BREWFATHER_UPLOAD_PERIOD, fermentationMonitorTask)
+        if (Environments.SIMULATION in environment.activeNames) {
+            taskScheduler.scheduleAtFixedRate(Duration.ofMillis(1), Duration.ofMillis(1), temperatureControlTask)
+            taskScheduler.scheduleAtFixedRate(Duration.ofSeconds(5), Duration.ofSeconds(5), fermentationMonitorTask)
+        } else {
+            taskScheduler.scheduleAtFixedRate(Duration.ofMinutes(10), Duration.ofMinutes(10), temperatureControlTask)
+            taskScheduler.scheduleAtFixedRate(BREWFATHER_UPLOAD_PERIOD, BREWFATHER_UPLOAD_PERIOD, fermentationMonitorTask)
+        }
     }
 
     fun clearProfile() {
@@ -105,8 +119,10 @@ class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer,
 
         val currentTempString = bestThermometer.map { it.currentTemp.toStringF() }.orElse("None")
 
-        val desiredHeatingMode = hysteresisProfile.determineHeatingMode(setpoint.tempSetpoint, bestThermometer)
-        logger.info("Current Setpoint: $setpoint. Current Temperature: $currentTempString Heating Mode: $currentHeatingMode. Changing Heating Mode to: $desiredHeatingMode.")
+        val desiredHeatingMode = hysteresisProfile.determineHeatingMode(setpoint.tempSetpoint, bestThermometer, currentHeatingMode)
+        if (currentHeatingMode != desiredHeatingMode) {
+            logger.info("Current Setpoint: $setpoint. Current Temperature: $currentTempString Heating Mode: $currentHeatingMode. Changing Heating Mode to: $desiredHeatingMode.")
+        }
         temperatureActuator.setHeatingMode(desiredHeatingMode)
     }
 }
@@ -138,5 +154,4 @@ class DurationSerializer : JsonSerializer<Duration>() {
     override fun serialize(value: Duration, gen: JsonGenerator, serializers: SerializerProvider) {
         gen.writeString(value.toString())
     }
-
 }

@@ -15,3 +15,4 @@ out/
 *.pyc
 src/main/resources/application.yml
 .current-profile.json
+.current-setpoint-completion.json

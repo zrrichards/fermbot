@@ -21,7 +21,7 @@ import javax.inject.Inject
  */
 @Context
 @Controller("/")
-class StateController @Inject constructor (private val fermentationProfileController: FermentationProfileController, private val profilePersister: Persister<List<TemperatureSetpoint>>, private val fermentationMonitorTask: FermentationMonitorTask){
+class StateController @Inject constructor (private val fermentationProfileController: FermentationProfileController) {
 
     private val logger = LoggerFactory.getLogger(StateController::class.java)
 

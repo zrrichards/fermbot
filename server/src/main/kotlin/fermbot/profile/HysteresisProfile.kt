@@ -18,11 +18,25 @@ class HysteresisProfile @Inject constructor(@Property(name="fermbot.hysteresis.l
 
     private val logger = LoggerFactory.getLogger(HysteresisProfile::class.java)
 
+    val totalWindow = lowerThreshold + upperThreshold
+
+    //TODO make these configurable but default values can't be used with @inject constructors
+    val min: TemperatureWindow = lowerThreshold * 1.2
+    val max: TemperatureWindow = upperThreshold * 1.2
+
+    //TODO calculate power consumption based on known wattage
+
     init {
-        logger.info("Initializing Hysteresis profile: lowerThreshold=$lowerThreshold upperThreshold=$upperThreshold")
+        require (lowerThreshold != ZERO) { "Lower threshold cannot be zero" }
+        require (upperThreshold != ZERO) { "Lower threshold cannot be zero" }
+        require (max > upperThreshold) { "Max value [$max] must be > upper threshold [$upperThreshold]" }
+        require (min > lowerThreshold) { "Min value [$min] must be > lower threshold [$lowerThreshold]" }
+
+        logger.info("Initializing Hysteresis profile: lowerThreshold=$lowerThreshold upperThreshold=$upperThreshold, min=$min, max=$max")
     }
 
-    fun determineHeatingMode(setpoint: Temperature, thermometer: Optional<Thermometer>): HeatingMode {
+
+    fun determineHeatingMode(setpoint: Temperature, thermometer: Optional<Thermometer>, currentHeatingMode: HeatingMode): HeatingMode {
 
         //If we don't have a thermometer, there's nothing we can do to measure the temperature so don't do anything for temp control
         if (!thermometer.isPresent) {
@@ -31,14 +45,38 @@ class HysteresisProfile @Inject constructor(@Property(name="fermbot.hysteresis.l
         }
 
         val currentTemp = thermometer.get().currentTemp
-        if (currentTemp > setpoint + upperThreshold) {
-            return HeatingMode.COOLING
+        return when(getHysteresisStatus(setpoint, currentTemp)) {
+            HysteresisStatus.MAX -> HeatingMode.COOLING
+            HysteresisStatus.ABOVE ->  when (currentHeatingMode) {
+                HeatingMode.HEATING -> HeatingMode.OFF
+                else -> HeatingMode.COOLING
+            }
+            HysteresisStatus.WITHIN -> currentHeatingMode
+            HysteresisStatus.BELOW -> when (currentHeatingMode) {
+                HeatingMode.COOLING -> HeatingMode.OFF
+                else -> HeatingMode.HEATING
+            }
+            HysteresisStatus.MIN -> HeatingMode.HEATING
         }
-        if (currentTemp < setpoint - lowerThreshold) {
-            return HeatingMode.HEATING
-        }
-        return HeatingMode.OFF
     }
+
+    fun getHysteresisStatus(setpoint: Temperature, currentTemperature: Temperature) : HysteresisStatus {
+        return when {
+            currentTemperature >= setpoint + max  -> HysteresisStatus.MAX
+            currentTemperature >= setpoint + upperThreshold -> HysteresisStatus.ABOVE
+            currentTemperature <= setpoint - min -> HysteresisStatus.MIN
+            currentTemperature <= setpoint - lowerThreshold -> HysteresisStatus.BELOW
+            else -> HysteresisStatus.WITHIN
+        }
+    }
+}
+
+enum class HysteresisStatus {
+    MAX,
+    ABOVE,
+    WITHIN,
+    BELOW,
+    MIN
 }
 
 fun symmetricHysteresisProfile(window: TemperatureWindow) = HysteresisProfile(window, window)
@@ -98,6 +136,18 @@ class TemperatureWindow(val value: Double, val unit: Temperature.Unit): Comparab
 
     override fun compareTo(other: TemperatureWindow): Int {
         return (get(unit) - other.get(unit)).sign.toInt()
+    }
+
+    operator fun plus(other: TemperatureWindow): TemperatureWindow {
+        return TemperatureWindow((get(unit) + other.get(unit)), unit)
+    }
+
+    operator fun times(d: Double): TemperatureWindow {
+        return TemperatureWindow(get(unit) * d, unit)
+    }
+
+    operator fun plus(other: Temperature): Temperature {
+        return other + this
     }
 }
 

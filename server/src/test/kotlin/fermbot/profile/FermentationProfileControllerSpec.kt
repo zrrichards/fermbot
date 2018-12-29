@@ -7,8 +7,8 @@ import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.FermentationMonitorTask
 import fermbot.monitor.HeatingMode
 import fermbot.toF
-import io.kotlintest.matchers.exactly
 import io.micronaut.context.annotation.Replaces
+import io.micronaut.context.env.Environment
 import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpRequest.GET
 import io.micronaut.http.HttpRequest.POST
@@ -27,6 +27,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.Duration
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 
 /**
@@ -50,7 +51,7 @@ class FermentationProfileControllerSpec {
     private lateinit var client: HttpClient
 
     @Inject
-    private lateinit var objectMapper: ObjectMapper
+    private lateinit var environment: Environment
 
     @BeforeEach
     fun clearProfile() {
@@ -60,6 +61,7 @@ class FermentationProfileControllerSpec {
     @Inject private lateinit var temperatureActuator: TemperatureActuator
 
     @Replaces(FileBasedProfilePersister::class)
+    @Named(BeanDefinitions.PROFILE_PERSISTER)
     @Singleton
     class MockPersister(private var persistedProfile: MutableList<TemperatureSetpoint> = mutableListOf()) : Persister<List<TemperatureSetpoint>> { //prevents creating the json file on the filesystem
 
@@ -178,7 +180,7 @@ class FermentationProfileControllerSpec {
         )
         val mockPersister = MockPersister(persistedProfile)
         val mockMonitor = mockk<FermentationMonitorTask>(relaxed=true)
-        val profileController = FermentationProfileController(mockPersister, mockk(), mockk(), mockk(), mockk(), mockk(), mockMonitor)
+        val profileController = FermentationProfileController(mockPersister, mockk(), mockk(), mockk(), mockk(), mockk(), mockMonitor, mockk(relaxed=true), environment)
 
         expectThat(profileController.getProfile()).isEqualTo(persistedProfile)
         verify(exactly = 1) {

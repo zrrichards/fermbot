@@ -29,7 +29,7 @@ import javax.inject.Singleton
  * @version $ 12/9/19
  */
 @Singleton
-class StartupEventListener @Inject constructor(deviceInfo: DeviceInfo, @Property(name="fermbot.banner-enabled") private val bannerEnabled: Boolean) {
+class StartupEventListener @Inject constructor(deviceInfo: DeviceInfo) {
 
     private val logger = LoggerFactory.getLogger(StartupEventListener::class.java)
 
@@ -37,20 +37,18 @@ class StartupEventListener @Inject constructor(deviceInfo: DeviceInfo, @Property
 
     @EventListener
     fun startupCompleted(event: ServiceStartedEvent) {
-        if (bannerEnabled) {
-            logger.info("""
-                                                 __    
-                                         _(\    |@@|
-                                        (__/\__ \--/ __       .~~~~~.
-  ______                  ____        _    \___|----|  |   __ i=====i
- |  ____|                |  _ \      | |       \ FB /\ )_ / _\|ccccc|
- | |__ ___ _ __ _ __ ___ | |_) | ___ | |       /\__/\ \__O (__| F B |
- |  __/ _ \ '__| '_ ` _ \|  _ < / _ \| __|    (--/\--)    \__/|ccccc|
- | | |  __/ |  | | | | | | |_) | (_) | |_     _)(  )(_        `-===-'
- |_|  \___|_|  |_| |_| |_|____/ \___/ \__|   `---''---`
-                                          
+        logger.info("""
+                                                __    
+                                        _(\    |@@|
+                                       (__/\__ \--/ __       .~~~~~.
+ ______                  ____        _    \___|----|  |   __ i=====i
+|  ____|                |  _ \      | |       \ FB /\ )_ / _\|ccccc|
+| |__ ___ _ __ _ __ ___ | |_) | ___ | |       /\__/\ \__O (__| F B |
+|  __/ _ \ '__| '_ ` _ \|  _ < / _ \| __|    (--/\--)    \__/|ccccc|
+| | |  __/ |  | | | | | | |_) | (_) | |_     _)(  )(_        `-===-'
+|_|  \___|_|  |_| |_| |_|____/ \___/ \__|   `---''---`
+                                      
 """)
-        }
         logger.info("Started FermBot v0.1. Device name: $deviceName")
         logger.info("""
 Thank you for using the FermBot. This project is licenced under the GPLv3. 

@@ -54,20 +54,20 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
 
         tiltOptional.ifPresent {
             val toStringF = it.currentTemp.toStringF()
-            output.append("Tilt Reading[temp=$toStringF, sg=${it.specificGravity}] ")
+            output.append("Tilt[$toStringF, sg=${it.specificGravity}] ")
             currentTemp = it.currentTemp
             currentSg = it.specificGravity
         }
 
         thermometerOptional.ifPresent {
            val toStringF = it.currentTemp.toStringF()
-            output.append("Thermometer Reading[$toStringF] ")
+            output.append("Thermometer[$toStringF] ")
             currentTemp = it.currentTemp
         }
 
         if (tiltOptional.isPresent && thermometerOptional.isPresent) {
             val tiltHigh = (tiltOptional.get().currentTemp - thermometerOptional.get().currentTemp).round(1)
-            output.append("Tilt is reading[${tiltHigh.toStringF()} higher than thermometer]")
+            output.append("Tilt reading ${tiltHigh.toStringF()} higher than thermometer")
         }
 
         logger.info(output.toString())

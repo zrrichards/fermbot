@@ -5,16 +5,24 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import java.nio.file.Paths
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 
 interface Persister<T: Any> {
+
     fun hasPersistedData(): Boolean
     fun read(): T
     fun persist(currentProfile: T)
+    fun loadOrElse(ifNoData: T) = if (hasPersistedData()) { read() } else { ifNoData }
+    fun clear()
 }
 
 @Singleton
+@Named(BeanDefinitions.PROFILE_PERSISTER)
 class FileBasedProfilePersister @Inject constructor(private val objectMapper: ObjectMapper) : Persister<List<TemperatureSetpoint>> {
+    override fun clear() {
+        currentProfileFile.delete()
+    }
 
     private val logger = LoggerFactory.getLogger(FileBasedProfilePersister::class.java)
     private val currentProfileFile = Paths.get(".current-profile.json").toFile()
@@ -39,4 +47,5 @@ class FileBasedProfilePersister @Inject constructor(private val objectMapper: Ob
             currentProfileFile.writeText(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(currentProfile))
         }
     }
+
 }

@@ -22,33 +22,46 @@ class SetpointDeterminerSpec {
         TimeBasedSetpoint(34.0.toF(), Duration.ofDays(14), "Cold Crash", true)
     )
 
+    class SetpointCompletionPersister : Persister<SetpointCompletion> {
+        override fun hasPersistedData() = false
+
+        override fun read(): SetpointCompletion {
+            throw UnsupportedOperationException()
+        }
+
+        override fun persist(currentProfile: SetpointCompletion) {
+            //do nothing
+        }
+
+    }
+
     @Test
     fun `the initial profile stage is the first profile by default`() {
-        val profileController = SetpointDeterminer(gravityBasedLagerProfile)
-        expectThat(profileController.getCurrentSetpointIndex()).isEqualTo(0)
+        val profileController = SetpointDeterminer(gravityBasedLagerProfile, SetpointCompletionPersister())
+        expectThat(profileController.currentSetpointIndex).isEqualTo(0)
     }
 
     @Test
     fun `initial setpoint is not changed if gravity is too high`() {
-        val profileController = SetpointDeterminer(gravityBasedLagerProfile)
+        val profileController = SetpointDeterminer(gravityBasedLagerProfile, SetpointCompletionPersister())
         val setpoint = profileController.getSetpoint(FixedHydrometer(1.040).toOptional())
         expectThat(setpoint).isEqualTo(gravityBasedLagerProfile[0])
     }
 
     @Test
     fun `initial setpoint is changed if gravity is equal to what is defined in the profile`() {
-        val profileController = SetpointDeterminer(gravityBasedLagerProfile)
+        val profileController = SetpointDeterminer(gravityBasedLagerProfile, SetpointCompletionPersister())
         val setpoint = profileController.getSetpoint(FixedHydrometer(1.023).toOptional())
         expectThat(setpoint).isEqualTo(gravityBasedLagerProfile[1])
-        expectThat(profileController.getCurrentSetpointIndex()).isEqualTo(1)
+        expectThat(profileController.currentSetpointIndex).isEqualTo(1)
     }
 
     @Test
     fun `initial setpoint is changed if gravity is less than what is defined in the profile`() {
-        val profileController = SetpointDeterminer(gravityBasedLagerProfile)
+        val profileController = SetpointDeterminer(gravityBasedLagerProfile, SetpointCompletionPersister())
         val setpoint = profileController.getSetpoint(FixedHydrometer(1.020).toOptional())
         expectThat(setpoint).isEqualTo(gravityBasedLagerProfile[1])
-        expectThat(profileController.getCurrentSetpointIndex()).isEqualTo(1)
+        expectThat(profileController.currentSetpointIndex).isEqualTo(1)
     }
 
     //todo all time based setpoints
@@ -57,7 +70,7 @@ class SetpointDeterminerSpec {
         val setpoints = listOf(
                 TimeBasedSetpoint(48.0.toF(), Duration.ofDays(2), "", false)
         )
-        val profileController = SetpointDeterminer(setpoints,0, Instant.now().minus(1, ChronoUnit.DAYS))
+        val profileController = SetpointDeterminer(setpoints, SetpointCompletionPersister())
         expectThat(profileController.getSetpoint(NullHydrometer.toOptional())).isEqualTo(setpoints[0])
     }
 }
