@@ -11,6 +11,7 @@ import io.mockk.verify
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.util.*
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -38,13 +39,13 @@ class TemperatureActuatorSpec {
         controller.setHeatingMode(HeatingMode.HEATING)
 
         verify(exactly = 1) {
-            mockHeater.enable()
-            mockCooler.disable()
+            mockHeater.get().enable()
+            mockCooler.get().disable()
         }
 
         verify(exactly = 0) {
-            mockHeater.disable()
-            mockCooler.enable()
+            mockHeater.get().disable()
+            mockCooler.get().enable()
         }
     }
 }
@@ -64,8 +65,8 @@ class InMemoryActiveHighDigitalOutputDevice : ActiveHighDigitalOutputDevice {
     }
 }
 
-private fun spyDevice(): InMemoryActiveHighDigitalOutputDevice {
-    return spyk(InMemoryActiveHighDigitalOutputDevice())
+private fun spyDevice(): Optional<ActiveHighDigitalOutputDevice> {
+    return Optional.of(spyk(InMemoryActiveHighDigitalOutputDevice()))
 }
 
 //notes on how to mock micronaut bean factory

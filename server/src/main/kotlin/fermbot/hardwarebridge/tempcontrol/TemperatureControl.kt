@@ -3,14 +3,12 @@ package fermbot.hardwarebridge.tempcontrol
 import fermbot.hardwarebridge.DigitalOutput
 import fermbot.hardwarebridge.GpioManager
 import fermbot.monitor.HeatingMode
-import io.micronaut.context.annotation.Bean
-import io.micronaut.context.annotation.Factory
-import io.micronaut.context.annotation.Property
-import io.micronaut.context.annotation.Value
+import io.micronaut.context.annotation.*
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.time.Duration
 import java.time.Instant
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -53,7 +51,7 @@ class HardwareBackedActiveHighDigitalOutputDevice(private val outputPin: Digital
  * Its primary role is to ensure that the heater and cooler are both not enabled at the same time.
  */
 @Singleton
-class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater") private val heater: ActiveHighDigitalOutputDevice, @param:Named("cooler") private val cooler: ActiveHighDigitalOutputDevice) : TemperatureActuator{
+class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater") private val heater: Optional<ActiveHighDigitalOutputDevice>, @param:Named("cooler") private val cooler: Optional<ActiveHighDigitalOutputDevice>) : TemperatureActuator{
 
     private var currentMode = HeatingMode.OFF
 
@@ -73,25 +71,29 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater
          */
         when (heatingMode) {
             HeatingMode.OFF -> {
-                heater.disable()
-                cooler.disable()
+                heater.ifPresent { it.disable() }
+                cooler.ifPresent { it.disable() }
             }
             HeatingMode.HEATING -> {
-                cooler.disable()
-                sleep(100)
-                heater.enable()
+                cooler.ifPresent {
+                    it.disable()
+                    sleep(100)
+                }
+                heater.ifPresent { it.enable() }
             }
             HeatingMode.COOLING -> {
-                heater.disable()
-                sleep(100)
-                cooler.enable()
+                heater.ifPresent {
+                    it.disable()
+                    sleep(100)
+                }
+                cooler.ifPresent { it.enable() }
             }
         }
 
         //this can only happen due to a programming error but check anyway
-        if (heater.isEnabled() && cooler.isEnabled()) {
-            heater.disable()
-            cooler.disable()
+        if (heater.isPresent && heater.get().isEnabled() && cooler.isPresent && cooler.get().isEnabled()) {
+            heater.get().disable()
+            cooler.get().disable()
             throw IllegalStateException("Both Heater and cooler enabled simultaneously. Disabling both. This is a programming error. Please report this issue on github immediately")
         }
 
@@ -114,8 +116,8 @@ interface TemperatureActuator {
 
 @Factory
 class HardwareBackedHeaterCoolerFactory @Inject constructor(private val gpioManager: GpioManager,
-            @Property(name="fermbot.heater-pin-name") private val heaterPinName: String,
-            @Property(name="fermbot.cooler-pin-name") private val coolerPinName: String) : HeaterCoolerFactory {
+            @Property(name="fermbot.heater.pin-name") private val heaterPinName: String,
+            @Property(name="fermbot.cooler.pin-name") private val coolerPinName: String) : HeaterCoolerFactory {
 
     private val logger = LoggerFactory.getLogger(HardwareBackedHeaterCoolerFactory::class.java)
 
@@ -128,6 +130,7 @@ class HardwareBackedHeaterCoolerFactory @Inject constructor(private val gpioMana
     @Bean
     @Singleton
     @Named("heater")
+    @Requires(property="fermbot.heater.enabled", value="true")
     override fun createHeater(): ActiveHighDigitalOutputDevice {
         logger.debug("Registering heater on pin {}", heaterPinName)
         return HardwareBackedActiveHighDigitalOutputDevice(gpioManager.provisionDigitalOutputDevice(heaterPinName!!, "Heater"))
@@ -136,6 +139,7 @@ class HardwareBackedHeaterCoolerFactory @Inject constructor(private val gpioMana
     @Bean
     @Singleton
     @Named("cooler")
+    @Requires(property="fermbot.cooler.enabled", value="true")
     override fun createCooler(): ActiveHighDigitalOutputDevice {
         logger.debug("Registering cooler on pin {}", coolerPinName)
         return HardwareBackedActiveHighDigitalOutputDevice(gpioManager.provisionDigitalOutputDevice(coolerPinName!!, "Cooler"))
