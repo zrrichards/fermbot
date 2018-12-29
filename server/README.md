@@ -38,7 +38,8 @@ The Fermbot workflow can be visualized as a state machine with four states:
 3. Running - The Fermbot is actively montoring (and controlling) a fermentation
 4. Testing - The fermbot is running through a cycle of hardware testing.
 
-**Below is a state diagram that illustrates the operation of the Fermbot**
+Below is a state diagram that illustrates the operation of the Fermbot
+![Alt text](fermbot-state-diagram.svg)
 
 ### Upon Startup
 The Fermbot will detect whether or not there is an active fermentation already running before it was previously powered off
