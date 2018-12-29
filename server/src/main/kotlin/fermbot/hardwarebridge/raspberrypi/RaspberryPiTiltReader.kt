@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.File
 import java.nio.file.Paths
+import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,13 +40,13 @@ class RaspberryPiTiltReader @Inject constructor(configuration: Configuration) : 
     private val logger = LoggerFactory.getLogger(RaspberryPiTiltReader::class.java)
 
     init {
-        logger.debug("Loading RaspberryPiTiltReader")
+        logger.debug("Tilt is enabled. Loading reader")
     }
 
     @Value("\${fermbot.pytilt-script-path}")
     private lateinit var pathToPytiltScript: String
 
-    override fun readTilt(): ThermoHydrometer {
+    override fun readTilt(): Optional<ThermoHydrometer> {
         val pytiltScript = "$pathToPytiltScript/pytilt.py"
         val process = ProcessBuilder("python", pytiltScript).start()
         val exited = process.waitFor(10, TimeUnit.SECONDS)
@@ -57,7 +58,7 @@ class RaspberryPiTiltReader @Inject constructor(configuration: Configuration) : 
         val objectMapper = ObjectMapper()
         val tilt = objectMapper.readValue(process.inputStream, Tilt::class.java)
         logger.debug("Read Tilt: {}", tilt)
-        return tilt
+        return Optional.of(tilt)
     }
 
     private fun getWorkingDirectory(): String {
@@ -68,17 +69,17 @@ class RaspberryPiTiltReader @Inject constructor(configuration: Configuration) : 
 @Singleton
 @Primary
 @Requires(property="tilt-enabled", notEquals="true")
-class RaspberryPiNullTiltReader() : ThermoHydrometerReader {
+class RaspberryPiNullTiltReader : ThermoHydrometerReader {
 
     private val logger = LoggerFactory.getLogger(NullThermometerReader::class.java)
 
     init {
-        logger.debug("Loading NullThermoHydrometerReader")
+        logger.debug("Tilt is disabled")
     }
 
-    override fun readTilt(): ThermoHydrometer {
+    override fun readTilt(): Optional<ThermoHydrometer> {
         logger.debug("Read Tilt: [NullTilt]")
-        return NullTilt
+        return Optional.empty()
     }
 }
 

@@ -16,6 +16,7 @@ import io.micronaut.test.annotation.MockBean
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,8 +40,8 @@ class FermentationMonitorTiltEnabledSpec {
     @Singleton
     @Replaces(RaspberryPiTiltReader::class)
     class TiltReaderStub : ThermoHydrometerReader {
-        override fun readTilt(): ThermoHydrometer {
-            return Tilt(TiltColors.BLACK, 1.052, 65.5)
+        override fun readTilt(): Optional<ThermoHydrometer> {
+            return Optional.of(Tilt(TiltColors.BLACK, 1.052, 65.5))
         }
     }
 

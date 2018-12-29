@@ -1,6 +1,6 @@
 package fermbot.orchestrator
 
-import fermbot.hardwarebridge.DS18B20Manager
+import fermbot.hardwarebridge.ThermometerReader
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.HeatingMode
 import fermbot.profile.TemperatureControllerTestPayload
@@ -19,7 +19,7 @@ import javax.inject.Inject
  * @version 12/22/19
  */
 @Controller("/test")
-class HardwareTester @Inject constructor(private val temperatureActuator: TemperatureActuator, private val dS18B20Manager: DS18B20Manager) {
+class HardwareTester @Inject constructor(private val temperatureActuator: TemperatureActuator, private val thermometerManager: ThermometerReader) {
 
     private val logger = LoggerFactory.getLogger(HardwareTester::class.java)
 
@@ -57,8 +57,10 @@ class HardwareTester @Inject constructor(private val temperatureActuator: Temper
             }
 
             temperatureActuator.setHeatingMode(modeToTest)
-            val thermometer = dS18B20Manager.getDevices()
-            logger.info("Thermometer (id=${thermometer.id}) is reading: ${thermometer.currentTemp.asF()}F")
+            val thermometer = thermometerManager.getDevices()
+            thermometer.ifPresent {
+                logger.info("Thermometer (id=${it.id}) is reading: ${it.currentTemp.asF()}F")
+            }
             logger.info("End of iteration ${currentRep + 1}/$reps. Pausing for $stepDuration\n")
             Thread.sleep(stepDuration.toMillis())
         }

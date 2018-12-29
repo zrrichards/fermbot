@@ -15,8 +15,6 @@ package fermbot.monitor
 
 import fermbot.Configuration
 import fermbot.brewfather.Brewfather
-import fermbot.brewfather.BrewfatherProductionClient
-import fermbot.hardwarebridge.NullTilt
 import fermbot.hardwarebridge.ThermoHydrometerReader
 import fermbot.orchestrator.SystemStatistics
 import io.micronaut.scheduling.annotation.Scheduled
@@ -42,12 +40,11 @@ class FermentationMonitor @Inject constructor(private val configuration: Configu
 
         //todo read temp from ds18b20 if enabled
 
-        val tilt = thermoHydrometerReader.readTilt()
-        if (tilt is NullTilt) {
-            return
-        }
+        val tiltOptional = thermoHydrometerReader.readTilt()
 
-        systemStatistics.latestTiltReading = tilt
-        brewfather.updateBatchDetails(tilt.currentTemp, tilt.specificGravity)
+        tiltOptional.ifPresent {
+            systemStatistics.latestTiltReading = it
+            brewfather.updateBatchDetails(it.currentTemp, it.specificGravity)
+        }
     }
 }

@@ -35,18 +35,5 @@ open class Tilt @ConstructorProperties("color", "sg", "temp") constructor(privat
     }
 }
 
-object NullTilt : ThermoHydrometer {
-    override val specificGravity: Double
-        get() = throw UnsupportedOperationException("Cannot read specificGravity from Null Tilt")
-
-    override val timestamp: Instant
-        get() = throw UnsupportedOperationException("Cannot read timestamp from Null Tilt")
-
-    override val currentTemp: Temperature
-        get() = throw UnsupportedOperationException("Cannot read currentTemp from Null Tilt")
-
-    override val id = "Null-Tilt"
-}
-
 interface ThermoHydrometer : Thermometer, Hydrometer
 

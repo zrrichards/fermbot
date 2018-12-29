@@ -1,6 +1,7 @@
 package fermbot.hardwarebridge
 
 import fermbot.Thermometer
+import java.util.*
 
 /**
  *
@@ -9,5 +10,5 @@ import fermbot.Thermometer
  */
 interface ThermometerReader {
 
-    fun getDevices(): Thermometer
+    fun getDevices(): Optional<Thermometer>
 }

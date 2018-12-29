@@ -60,7 +60,7 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater
     override fun getCurrentHeatingMode() = currentMode
 
     init {
-        logger.info("Initializing Temperature Actuator. ${heater.ifPresent { "Heater is enabled " }} ${cooler.ifPresent { "Cooler is enabled" }}. Heating mode is currently $currentMode")
+//        logger.info("Initializing Temperature Actuator. Heating Configuration: ${heatingCoolingConfiguration.description}. Heating mode is currently $currentMode")
         if (heatingCoolingConfiguration == HeaterCoolerConfiguration.NONE) {
             logger.warn("No temperature control devices are enabled. The FermBot will not be able to control your fermentation temperature. It will only be monitored. Ensure this is what you want before proceeding")
         }
