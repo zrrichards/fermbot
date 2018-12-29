@@ -88,3 +88,9 @@ shadowJar {
 
 run.classpath += configurations.developmentOnly
 run.jvmArgs('-noverify', '-XX:TieredStopAtLevel=1', '-Dcom.sun.management.jmxremote')
+
+task simulate(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+   main = "fermbot.Application"
+   jvmArgs '-Dmicronaut.environments=simulation'
+}

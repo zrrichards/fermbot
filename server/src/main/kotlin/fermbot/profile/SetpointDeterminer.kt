@@ -22,6 +22,7 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
 
     fun <T: Hydrometer> getSetpoint(hydrometer: Optional<T>): TemperatureSetpoint {
         if (isCurrentStageFulfilled(hydrometer)) {
+            logger.info("Fermentation stage index[$currentSetpointIndex] fulfilled. Moving to next stage")
             currentSetpointIndex++
         }
         return currentStage

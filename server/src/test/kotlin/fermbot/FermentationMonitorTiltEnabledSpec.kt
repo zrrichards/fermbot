@@ -26,7 +26,7 @@ import javax.inject.Singleton
  */
 
 
-@Property(name="tilt-enabled", value="true")
+@Property(name="tilt.enabled", value="true")
 @MicronautTest
 class FermentationMonitorTiltEnabledSpec {
 

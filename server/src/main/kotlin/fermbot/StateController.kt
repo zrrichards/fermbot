@@ -7,6 +7,7 @@ import fermbot.profile.TemperatureSetpoint
 import io.micronaut.context.annotation.Context
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
+import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
 import org.slf4j.LoggerFactory
 import java.lang.IllegalStateException
@@ -26,6 +27,7 @@ class StateController @Inject constructor (private val fermentationProfileContro
 
     private var currentState: State
 
+    @Get("/state")
     fun getCurrentState() = currentState
 
     init {

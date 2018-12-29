@@ -74,7 +74,7 @@ class FermentationProfileController @Inject constructor(private val profilePersi
                 setpointDeterminer, hydrometerReader, hysteresisProfile, thermometerReader, temperatureActuator
         )
         temperatureControlTask.run()
-        taskScheduler.scheduleAtFixedRate(Duration.ZERO, Duration.ofMinutes(10), temperatureControlTask)
+        taskScheduler.scheduleAtFixedRate(Duration.ofMinutes(10), Duration.ofMinutes(10), temperatureControlTask)
         taskScheduler.scheduleAtFixedRate(BREWFATHER_UPLOAD_PERIOD, BREWFATHER_UPLOAD_PERIOD, fermentationMonitorTask)
     }
 
@@ -103,8 +103,10 @@ class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer,
         // if the tilt and ds18b20 are both present, use the ds18b20, otherwise use the tilt
         val bestThermometer = cascadeOptionals(thermohydrometer, thermometer)
 
+        val currentTempString = bestThermometer.map { it.currentTemp.toStringF() }.orElse("None")
+
         val desiredHeatingMode = hysteresisProfile.determineHeatingMode(setpoint.tempSetpoint, bestThermometer)
-        logger.info("Current Setpoint: $setpoint. Current Heating Mode: $currentHeatingMode. Changing Heating Mode to: $desiredHeatingMode.")
+        logger.info("Current Setpoint: $setpoint. Current Temperature: $currentTempString Heating Mode: $currentHeatingMode. Changing Heating Mode to: $desiredHeatingMode.")
         temperatureActuator.setHeatingMode(desiredHeatingMode)
     }
 }

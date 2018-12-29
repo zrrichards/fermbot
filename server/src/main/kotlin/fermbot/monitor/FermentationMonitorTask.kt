@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.round
 
 /**
  * Controls tilt parsing and logs data to brewfather
@@ -65,7 +66,7 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
         }
 
         if (tiltOptional.isPresent && thermometerOptional.isPresent) {
-            val tiltHigh = tiltOptional.get().currentTemp - thermometerOptional.get().currentTemp
+            val tiltHigh = (tiltOptional.get().currentTemp - thermometerOptional.get().currentTemp).round(1)
             output.append("Tilt is reading[${tiltHigh.toStringF()} higher than thermometer]")
         }
 
@@ -87,3 +88,15 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
 
     }
 }
+
+private fun Temperature.round(decimals: Int): Temperature {
+
+    fun Double.round(decimals: Int): Double {
+        var multiplier = 1.0
+        repeat(decimals) { multiplier *= 10 }
+        return round(this * multiplier) / multiplier
+    }
+
+    return Temperature(this.value.round(decimals), this.unit)
+}
+

@@ -17,9 +17,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fermbot.hardwarebridge.ThermoHydrometer
 import fermbot.hardwarebridge.ThermoHydrometerReader
 import fermbot.hardwarebridge.Tilt
+import fermbot.hardwarebridge.TiltColors
 import io.micronaut.context.annotation.Primary
 import io.micronaut.context.annotation.Requires
 import io.micronaut.context.annotation.Value
+import io.micronaut.http.annotation.Body
+import io.micronaut.http.annotation.Controller
+import io.micronaut.http.annotation.Post
 import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.File
@@ -34,7 +38,7 @@ import kotlin.io.readText
  * @version $ 12/5/19
  */
 @Singleton
-@Requires(env=["Raspberry-Pi"], property="tilt-enabled", value="true")
+@Requires(env=["Raspberry-Pi"], property="fermbot.tilt.enabled", value="true")
 class RaspberryPiTiltReader : ThermoHydrometerReader {
 
     private val logger = LoggerFactory.getLogger(RaspberryPiTiltReader::class.java)
@@ -68,7 +72,7 @@ class RaspberryPiTiltReader : ThermoHydrometerReader {
 
 @Singleton
 @Primary
-@Requires(property="tilt-enabled", notEquals="true")
+@Requires(property="fermbot.tilt.enabled", notEquals="true")
 class NullTiltReader : ThermoHydrometerReader {
 
     private val logger = LoggerFactory.getLogger(NullTiltReader::class.java)
@@ -83,3 +87,25 @@ class NullTiltReader : ThermoHydrometerReader {
     }
 }
 
+@Singleton
+@Controller
+@Requires(env=["simulation"], property="fermbot.tilt.enabled", value="true")
+class SimulationTiltReader : ThermoHydrometerReader {
+
+    private val logger = LoggerFactory.getLogger(SimulationTiltReader::class.java)
+
+    private var nextValue = 1.000
+
+    init {
+        logger.info("Initializing SimluationTiltReader")
+    }
+
+    @Post("/simluation/tilt")
+    fun setNextValue(@Body nextValue: Double) {
+        this.nextValue = nextValue
+    }
+
+    override fun readTilt(): Optional<ThermoHydrometer> {
+        return Optional.of(Tilt(color=TiltColors.BLACK, specificGravity = nextValue, rawTemp = 45.2))
+    }
+}

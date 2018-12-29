@@ -1,5 +1,13 @@
 package fermbot
 
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.SerializerProvider
+import javax.inject.Singleton
+
 /**
  * The fermbot is a state machine with REST calls changing states. This sealed class manages these states
  * and contains which states are valid to transition to from the current state. This ensures that the Fermbot's
@@ -52,3 +60,15 @@ sealed class State {
  * Returns a list of all valid states in the system
  */
 fun validStates() = State::class.nestedClasses.map { it.objectInstance as State }
+
+@Singleton
+class StateSerializer : JsonSerializer<State>() {
+    override fun serialize(value: State, gen: JsonGenerator, serializers: SerializerProvider) {
+        gen.writeString(value.name)
+    }
+}
+
+@Singleton
+class StateDeserializer : JsonDeserializer<State>() {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext) = validStates().first { it.name == p.valueAsString }
+}

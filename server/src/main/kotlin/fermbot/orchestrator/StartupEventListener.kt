@@ -15,6 +15,7 @@ package fermbot.orchestrator
 
 import fermbot.Application
 import fermbot.DeviceInfo
+import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Value
 import io.micronaut.discovery.event.ServiceStartedEvent
 import io.micronaut.runtime.event.annotation.EventListener
@@ -28,14 +29,11 @@ import javax.inject.Singleton
  * @version $ 12/9/19
  */
 @Singleton
-class StartupEventListener @Inject constructor(deviceInfo: DeviceInfo) {
+class StartupEventListener @Inject constructor(deviceInfo: DeviceInfo, @Property(name="fermbot.banner-enabled") private val bannerEnabled: Boolean) {
 
     private val logger = LoggerFactory.getLogger(StartupEventListener::class.java)
 
     private var deviceName = deviceInfo.deviceName
-
-    @Value("\${fermbot.banner-enabled:true}") //todo doc
-    private var bannerEnabled = true
 
     @EventListener
     fun startupCompleted(event: ServiceStartedEvent) {
@@ -46,7 +44,7 @@ class StartupEventListener @Inject constructor(deviceInfo: DeviceInfo) {
                                         (__/\__ \--/ __       .~~~~~.
   ______                  ____        _    \___|----|  |   __ i=====i
  |  ____|                |  _ \      | |       \ FB /\ )_ / _\|ccccc|
- | |__ ___ _ __ _ __ ___ | |_) | ___ | |       /\__/\ \__O (__|ccccc|
+ | |__ ___ _ __ _ __ ___ | |_) | ___ | |       /\__/\ \__O (__| F B |
  |  __/ _ \ '__| '_ ` _ \|  _ < / _ \| __|    (--/\--)    \__/|ccccc|
  | | |  __/ |  | | | | | | |_) | (_) | |_     _)(  )(_        `-===-'
  |_|  \___|_|  |_| |_| |_|____/ \___/ \__|   `---''---`
