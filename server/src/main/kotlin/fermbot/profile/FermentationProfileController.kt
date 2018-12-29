@@ -20,6 +20,7 @@ import javax.inject.Singleton
  */
 @Controller("/profile")
 class FermentationProfileRestController @Inject constructor(private val profilePersister: ProfilePersister) {
+
     private val currentProfile: MutableList<TemperatureSetpoint> = if (profilePersister.hasPersistedProfile()) {
         profilePersister.readProfile().toMutableList()
     } else {
@@ -29,7 +30,7 @@ class FermentationProfileRestController @Inject constructor(private val profileP
     private val logger = LoggerFactory.getLogger(FermentationProfileRestController::class.java)
 
     init {
-        logger.info("CurrentProfile:{}", currentProfile)
+        logger.info("CurrentProfile: {}", currentProfile)
     }
 
     @Get("/")
