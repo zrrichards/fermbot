@@ -24,7 +24,6 @@ object Application {
         Micronaut.build()
                 .packages("fermbot")
                 .mainClass(Application.javaClass)
-                .environments(Environments.SIMULATION)
                 .start()
     }
 }
