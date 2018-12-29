@@ -3,11 +3,12 @@ package fermbot.hardwarebridge.tempcontrol
 import fermbot.hardwarebridge.DigitalOutput
 import fermbot.hardwarebridge.GpioManager
 import fermbot.monitor.HeatingMode
-import io.micronaut.context.annotation.*
+import io.micronaut.context.annotation.Bean
+import io.micronaut.context.annotation.Factory
+import io.micronaut.context.annotation.Property
+import io.micronaut.context.annotation.Requires
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
-import java.time.Duration
-import java.time.Instant
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
@@ -51,13 +52,13 @@ class HardwareBackedActiveHighDigitalOutputDevice(private val outputPin: Digital
 @Singleton
 class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater") private val heater: Optional<ActiveHighDigitalOutputDevice>, @param:Named("cooler") private val cooler: Optional<ActiveHighDigitalOutputDevice>) : TemperatureActuator{
 
-    private var currentMode = HeatingMode.OFF
+    private var currentHeatingMode = HeatingMode.OFF
 
     private val logger = LoggerFactory.getLogger(HardwareBackedTemperatureActuator::class.java)
 
-    val heatingCoolingConfiguration = determineHeaterCoolerConfiguration()
+    private val heatingCoolingConfiguration = determineHeaterCoolerConfiguration()
 
-    override fun getCurrentHeatingMode() = currentMode
+    @Synchronized override fun getCurrentHeatingMode(): HeatingMode = currentHeatingMode
 
     init {
 //        logger.info("Initializing Temperature Actuator. Heating Configuration: ${heatingCoolingConfiguration.description}. Heating mode is currently $currentMode")
@@ -70,8 +71,10 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater
      * Sets the current heating mode
      * Returns the previous heating mode
      */
-    override fun setHeatingMode(heatingMode: HeatingMode) : HeatingMode {
-        logger.debug("Setting heating mode to: {}", heatingMode)
+    @Synchronized override fun setHeatingMode(heatingMode: HeatingMode) : HeatingMode {
+        check(heatingMode != currentHeatingMode) {
+            "Heating mode already set to $heatingMode"
+        }
 
         when (heatingCoolingConfiguration) {
             HeaterCoolerConfiguration.NONE -> {
@@ -122,8 +125,8 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater
             throw IllegalStateException("Both Heater and cooler enabled simultaneously. Disabling both. This is a programming error. Please report this issue on github immediately")
         }
 
-        val prevHeatingMode = currentMode
-        currentMode = heatingMode
+        val prevHeatingMode = currentHeatingMode
+        currentHeatingMode = heatingMode
         return prevHeatingMode
     }
 
@@ -182,7 +185,7 @@ class HardwareBackedHeaterCoolerFactory @Inject constructor(private val gpioMana
     @Requires(property="fermbot.heater.enabled", value="true")
     override fun createHeater(): ActiveHighDigitalOutputDevice {
         logger.debug("Registering heater on pin {}", heaterPinName)
-        return HardwareBackedActiveHighDigitalOutputDevice(gpioManager.provisionDigitalOutputDevice(heaterPinName!!, "Heater"))
+        return HardwareBackedActiveHighDigitalOutputDevice(gpioManager.provisionDigitalOutputDevice(heaterPinName, "Heater"))
     }
 
     @Bean
@@ -191,6 +194,6 @@ class HardwareBackedHeaterCoolerFactory @Inject constructor(private val gpioMana
     @Requires(property="fermbot.cooler.enabled", value="true")
     override fun createCooler(): ActiveHighDigitalOutputDevice {
         logger.debug("Registering cooler on pin {}", coolerPinName)
-        return HardwareBackedActiveHighDigitalOutputDevice(gpioManager.provisionDigitalOutputDevice(coolerPinName!!, "Cooler"))
+        return HardwareBackedActiveHighDigitalOutputDevice(gpioManager.provisionDigitalOutputDevice(coolerPinName, "Cooler"))
     }
 }

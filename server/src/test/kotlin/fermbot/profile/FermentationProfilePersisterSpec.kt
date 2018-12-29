@@ -33,21 +33,19 @@ class FermentationProfilePersisterSpec {
 
     @BeforeEach
     fun initFile() {
-        file = Paths.get(".temp").toFile()
-        check(!file.exists())
-        file.createNewFile()
-        persister = FileBasedFermentationSnapshotPersister(file, objectMapper)
+        persister = FileBasedFermentationSnapshotPersister(objectMapper)
+        persister.clear()
     }
 
     @AfterEach
     fun deleteFile() {
-        file.delete()
+        persister.clear()
     }
 
     @Test
     fun `can append snapshot to file`() {
         val snapshot = FermentationSnapshot(temp = 48.0.toF(),currentSg=1.056, heatingMode = HeatingMode.OFF,
-                currentSetpointIndex=0)
+                currentSetpointIndex=0, setpoint=49.5.toF(), stageDescription = "foo")
         persister.append(snapshot)
         expectThat(persister.readAll()).isEqualTo(listOf(snapshot))
     }

@@ -1,13 +1,15 @@
 package fermbot.monitor
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import java.io.File
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import fermbot.Temperature
+import fermbot.temperatureFromString
 import java.nio.file.Paths
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
-import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
@@ -26,12 +28,28 @@ interface FermentationSnapshotPersister {
 class FileBasedFermentationSnapshotPersister @Inject constructor(private val objectMapper: ObjectMapper): FermentationSnapshotPersister {
     override fun clear() {
         file.delete()
-        file.writeText(fieldsList.joinToString(",") + "\n")
+        file.writeText( CSV_HEADER + "\n")
     }
 
     private val file = Paths.get(".fermentation-snapshots").toFile()
 
-    val fieldsList = FermentationSnapshot::class.memberProperties.map { it.name }
+    val fieldsMap = FermentationSnapshot::class.memberProperties.map { it.name to it.returnType.classifier as KClass<*> }.toMap()
+
+    val fieldsList = fieldsMap.keys
+
+    private val function: (String) -> Any = { it } //not sure why the type inference fails if this variable is inlined
+
+    private val CSV_HEADER = fieldsList.joinToString(",")
+    /**
+     * The set of functions that parse the string value from the CSV to the parameters of the fermentation snapshot object
+     */
+    private val transformers = mapOf<KClass<*>, (String) -> Any>(
+        Instant::class to Instant::parse,
+        Temperature::class to ::temperatureFromString,
+        Double::class to String::toDouble,
+        Int::class to String::toInt,
+        HeatingMode::class to HeatingMode::valueOf,
+        String::class to function)
 
     override fun append(snapshot: FermentationSnapshot) {
         val snapshotMap = snapshot.asMap()
@@ -46,11 +64,19 @@ class FileBasedFermentationSnapshotPersister @Inject constructor(private val obj
          * List<Map<Parameter, String>>
          * List<FermentationSnapshot>
          */
-        return file.readLines().map {
-            fieldsList.zip(it.split(",")).toMap().mapKeys { constructor!!.parameters.find {
-                param -> it.key == param.name
-            } }
-        }.map { constructor!!.callBy(it as Map<KParameter, Any?>) }
+        val lines = file.readLines()
+        check(lines[0].trim() == CSV_HEADER)
+        return lines.skipHeader().map {
+            fieldsList.zip(it.split(",")).toMap()
+        }.map { transformParameters(it) }.map { objectMapper.convertValue(it, FermentationSnapshot::class.java) }
+    }
+
+    private fun transformParameters(parameters: Map<String, String>) : Map<String, Any> {
+        return parameters.mapValues {
+            val kClass = fieldsMap[it.key] ?: throw IllegalArgumentException("Unrecognized parameter named ${it.key}")
+            val transformFunction = transformers[kClass] ?: throw IllegalArgumentException("No transform function found for type: $kClass")
+            transformFunction(it.value)
+        }
     }
 
     private inline fun <reified T : Any> T.asMap() : Map<String, Any?> {
@@ -61,3 +87,5 @@ class FileBasedFermentationSnapshotPersister @Inject constructor(private val obj
     //todo function to determine if SG is unchanged for a certain amount of time
     //todo ensure using a cache or circular buffer in memory so list of snapshots doesn't grow too much (that would be in controller).
 }
+
+private fun <E> List<E>.skipHeader(): List<E> = subList(1, size)

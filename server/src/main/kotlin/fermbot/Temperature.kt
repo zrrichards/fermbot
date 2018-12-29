@@ -65,13 +65,14 @@ class TemperatureSerializer : JsonSerializer<Temperature>() {
         gen.writeString("${value.value}${value.unit.symbol}")
 }
 
+fun temperatureFromString(s: String): Temperature {
+    val unit = s.takeLast(1).toTemperatureUnit()
+    val temp = s.take(s.lastIndex).toDouble()
+    return Temperature(temp, unit)
+}
+
 @Singleton
 class TemperatureDeserializer : JsonDeserializer<Temperature>() {
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Temperature {
-        val tempAsString = p.valueAsString
-        val unit = tempAsString.takeLast(1).toTemperatureUnit()
-        val temp = tempAsString.take(tempAsString.lastIndex).toDouble()
-        return Temperature(temp, unit)
-    }
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext) = temperatureFromString(p.valueAsString)
 }
 

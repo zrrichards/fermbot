@@ -5,7 +5,6 @@ import fermbot.Thermometer
 import fermbot.hardwarebridge.DS18B20
 import fermbot.monitor.HeatingMode
 import fermbot.monitor.HeatingMode.*
-import fermbot.monitor.HeatingMode.*
 import fermbot.profile.HysteresisStatus.*
 import fermbot.toF
 import org.junit.jupiter.api.Test

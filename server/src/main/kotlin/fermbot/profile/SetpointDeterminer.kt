@@ -12,6 +12,7 @@ import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
+import kotlin.math.roundToLong
 
 /**
  *
@@ -118,7 +119,8 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
         get() = setpoints[currentSetpointIndex]
 }
 
-private operator fun Duration.div(other: Duration) = toMillis().toDouble() / other.toMillis().toDouble()
+operator fun Duration.div(other: Duration) = toMillis().toDouble() / other.toMillis().toDouble()
+operator fun Duration.div(other: Double) = Duration.ofMillis((toMillis().toDouble() / other).roundToLong())
 
 private fun String.defaultIfEmpty(s: String) = if (isEmpty()) { s } else { this }
 

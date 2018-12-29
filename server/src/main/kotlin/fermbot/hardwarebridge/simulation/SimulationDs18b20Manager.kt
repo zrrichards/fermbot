@@ -26,6 +26,7 @@ class SimulationDs18b20Manager : ThermometerReader {
     var fermentationProfileController: FermentationProfileController? = null
 
     var prevTemp = fermentationProfileController?.currentSetpoint?.tempSetpoint ?: 50.0.toF()
+    var prevHeatingMode = HeatingMode.OFF
 
     init {
         "Initializing: ${this.javaClass.simpleName}"
@@ -33,7 +34,14 @@ class SimulationDs18b20Manager : ThermometerReader {
     override fun getDevices(): Optional<Thermometer> {
         logger.debug("Invoking simulation DS18B20 Reader")
         val heatingMode = fermentationProfileController?.getCurrentHeatingMode() ?: HeatingMode.OFF
-        val changeInTemp = Random.nextDouble(0.1)
+        if (heatingMode != prevHeatingMode) {
+            logger.info("Noticing that heating mode changed from $prevHeatingMode to $heatingMode")
+            prevHeatingMode = heatingMode
+        }
+        val changeInTemp = when(heatingMode) {
+            HeatingMode.OFF -> Random.nextDouble(0.1)
+            else -> Random.nextDouble(0.25)
+        }
 
         //if temperature control is off generate some random wobble attributable to environmental conditions
         val sgn = when (heatingMode) {

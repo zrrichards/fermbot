@@ -13,6 +13,7 @@ package fermbot
  *  GNU General Public License for more details.
  */
 
+import fermbot.profile.Environments
 import io.micronaut.runtime.Micronaut
 
 object Application {
@@ -23,6 +24,7 @@ object Application {
         Micronaut.build()
                 .packages("fermbot")
                 .mainClass(Application.javaClass)
+                .environments(Environments.SIMULATION)
                 .start()
     }
 }

@@ -56,14 +56,15 @@ class StateController @Inject constructor (private val fermentationProfileContro
     @Post("/pause")
     fun pause() {
         checkState(State.RUNNING)
-        //do pause
+        fermentationProfileController.cancel()
         setState(State.READY)
     }
 
     @Post("/cancel")
     fun cancel() {
         checkState(State.RUNNING)
-        //do cancel
+        fermentationProfileController.cancel()
+        fermentationProfileController.clearProfile()
         setState(State.PENDING_PROFILE)
     }
 

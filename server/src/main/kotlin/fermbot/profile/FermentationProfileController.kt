@@ -10,6 +10,7 @@ import fermbot.hardwarebridge.ThermometerReader
 import fermbot.hardwarebridge.simulation.SimulationDs18b20Manager
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.FermentationMonitorTask
+import fermbot.monitor.HeatingMode
 import io.micronaut.context.env.Environment
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
@@ -17,9 +18,12 @@ import io.micronaut.scheduling.TaskExecutors
 import io.micronaut.scheduling.TaskScheduler
 import org.slf4j.LoggerFactory
 import java.time.Duration
+import java.util.concurrent.ScheduledFuture
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
+import kotlin.math.abs
+import kotlin.math.log10
 
 /**
  *
@@ -37,6 +41,9 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
                                                         @param:Named(BeanDefinitions.SETPOINT_COMPLETION_PERSISTER) private val setpointCompletionPersister: Persister<SetpointCompletion>,
                                                         private val environment: Environment) {
 
+    private var temperatureControlFuture: ScheduledFuture<*>? = null
+    private var fermentationMonitorFuture: ScheduledFuture<*>? = null
+
     private val BREWFATHER_UPLOAD_PERIOD = Duration.ofSeconds(15 * 60 + 10) //15 minutes + a few seconds as a buffer
 
     val currentSetpoint: TemperatureSetpoint
@@ -52,7 +59,7 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
         get() = setpointDeterminer.currentSetpointIndex
 
     init {
-        logger.info("CurrentProfile: {}", if (currentProfile.isEmpty()) { "[empty]" } else { currentProfile })
+        logger.info("CurrentProfile: {}", if (currentProfile.isEmpty()) { "[empty]" } else { "\n${prettyFormatCurrentProfile()}"})
         fermentationMonitorTask.run() //initial post to brewfather so device is visible
         if (thermometerReader is SimulationDs18b20Manager) { //if we're simulating temperature, pass this instance to the thermometer.
             thermometerReader.fermentationProfileController = this
@@ -73,10 +80,29 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
             clear()
             addAll(setpoints)
         }
-        logger.info("Fermentation profile changed to: {}", currentProfile)
+        logger.info("Fermentation profile changed to: \n{}", prettyFormatCurrentProfile())
         profilePersister.persist(currentProfile)
         setpointCompletionPersister.clear()
     }
+
+    private fun prettyFormatCurrentProfile(): String {
+
+        fun padToWidth(i: Int, size: Int): String {
+            val str = StringBuilder()
+            repeat(size - i.numDigits()) {
+                str.append(" ")
+            }
+            str.append(i.toString())
+            return str.toString()
+        }
+
+        val profileAsString = StringBuilder()
+        currentProfile.forEachIndexed { i, currentStage ->
+            profileAsString.append("\t${padToWidth(i + 1, currentProfile.size.numDigits())}: $currentStage\n") //display as one-based
+        }
+        return profileAsString.toString()
+    }
+
 
     @Get("/status")
     fun status() : Any {
@@ -100,12 +126,18 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
         fermentationMonitorTask.fermentationProfileController = this
         fermentationMonitorTask.clearSnapshots()
         if (Environments.SIMULATION in environment.activeNames) {
-            taskScheduler.scheduleAtFixedRate(Duration.ofMillis(20), Duration.ofMillis(20), temperatureControlTask)
-            taskScheduler.scheduleAtFixedRate(Duration.ofMillis(20), Duration.ofMillis(20), fermentationMonitorTask)
+            val duration = determineSimulationStepDuration()
+            temperatureControlFuture = taskScheduler.scheduleAtFixedRate(duration, duration, temperatureControlTask)
+            fermentationMonitorFuture = taskScheduler.scheduleAtFixedRate(duration, duration, fermentationMonitorTask)
         } else {
-            taskScheduler.scheduleAtFixedRate(Duration.ofMinutes(10), Duration.ofMinutes(10), temperatureControlTask)
-            taskScheduler.scheduleAtFixedRate(BREWFATHER_UPLOAD_PERIOD, BREWFATHER_UPLOAD_PERIOD, fermentationMonitorTask)
+            temperatureControlFuture = taskScheduler.scheduleAtFixedRate(Duration.ofMinutes(10), Duration.ofMinutes(10), temperatureControlTask)
+            fermentationMonitorFuture = taskScheduler.scheduleAtFixedRate(BREWFATHER_UPLOAD_PERIOD, BREWFATHER_UPLOAD_PERIOD, fermentationMonitorTask)
         }
+    }
+
+    private fun determineSimulationStepDuration(): Duration {
+        //in simulation mode, a second is equivalent to a day
+        return Duration.ofMinutes(10) / (24 * 60 * 60).toDouble()
     }
 
     fun clearProfile() {
@@ -117,6 +149,14 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
 
     fun isProfileSet(): Boolean {
         return currentProfile.isNotEmpty()
+    }
+
+    fun cancel() {
+        logger.info("Cancelling fermentation control")
+        temperatureControlFuture?.cancel(true)
+        fermentationMonitorFuture?.cancel(true)
+        temperatureActuator.setHeatingMode(HeatingMode.OFF)
+        logger.info("Control cancelled. Heating mode set to Off")
     }
 }
 
@@ -138,9 +178,9 @@ class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer,
         val desiredHeatingMode = hysteresisProfile.determineHeatingMode(setpoint.tempSetpoint, bestThermometer, currentHeatingMode)
         if (currentHeatingMode != desiredHeatingMode) {
             logger.info("Current Setpoint: $setpoint. Current Temperature: $currentTempString Heating Mode: $currentHeatingMode. Changing Heating Mode to: $desiredHeatingMode.")
-            fermentationMonitorTask.run() // if we change heatiing modes, we need to capture it
+            temperatureActuator.setHeatingMode(desiredHeatingMode)
+            fermentationMonitorTask.run() // if we change heating modes, we need to capture it
         }
-        temperatureActuator.setHeatingMode(desiredHeatingMode)
     }
 }
 
@@ -171,4 +211,9 @@ class DurationSerializer : JsonSerializer<Duration>() {
     override fun serialize(value: Duration, gen: JsonGenerator, serializers: SerializerProvider) {
         gen.writeString(value.toString())
     }
+}
+
+fun Int.numDigits() = when(this) {
+    0 -> 1
+    else -> log10(abs(toDouble())).toInt() + 1
 }

@@ -143,7 +143,7 @@ class FermentationProfileControllerSpec {
                 "tempSetpoint": "62F",
                 "duration": "P2D",
                 "stageDescription": "Diacetyl Rest",
-                "includeRamp": false
+                "includeRamp": true
             },
             {
                 "tempSetpoint": "34F",
@@ -156,7 +156,7 @@ class FermentationProfileControllerSpec {
 
         val profileList = listOf(
                 SpecificGravityBasedSetpoint(48.0.toF(), 1.023, "Primary"),
-                TimeBasedSetpoint(62.0.toF(), Duration.ofDays(2), "Diacetyl Rest", false),
+                TimeBasedSetpoint(62.0.toF(), Duration.ofDays(2), "Diacetyl Rest", true),
                 TimeBasedSetpoint(34.0.toF(), Duration.ofDays(14), "Cold Crash", true)
         )
 

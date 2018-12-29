@@ -17,7 +17,7 @@ class SetpointDeterminerSpec {
 
     val gravityBasedLagerProfile = listOf(
         SpecificGravityBasedSetpoint(48.0.toF(), 1.023, "Primary"),
-        TimeBasedSetpoint(62.0.toF(), Duration.ofDays(2), "Diacetyl Rest", false),
+        TimeBasedSetpoint(62.0.toF(), Duration.ofDays(2), "Diacetyl Rest", true),
         TimeBasedSetpoint(34.0.toF(), Duration.ofDays(14), "Cold Crash", true)
     )
 
@@ -61,7 +61,7 @@ class SetpointDeterminerSpec {
     @Test
     fun `time-based setpoint is not fulfilled if not enough time has passed`() {
         val setpoints = listOf(
-                TimeBasedSetpoint(48.0.toF(), Duration.ofDays(2), "", false)
+                TimeBasedSetpoint(48.0.toF(), Duration.ofDays(2), "", true)
         )
         val profileController = SetpointDeterminer(setpoints, SetpointCompletionPersister(), mockk(relaxed=true))
         expectThat(profileController.getSetpoint(NullHydrometer.toOptional())).isEqualTo(setpoints[0])

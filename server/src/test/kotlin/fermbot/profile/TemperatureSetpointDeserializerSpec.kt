@@ -53,11 +53,11 @@ class TemperatureSetpointDeserializerSpec {
             "tempSetpoint": "62F",
             "duration": "P2D",
             "stageDescription": "Diacetyl Rest",
-            "includeRamp": false
+            "includeRamp": true
         }"""
 
         val deser = json.deserialize()
-        expectThat(deser).isEqualTo(TimeBasedSetpoint(62.0.toF(), Duration.ofDays(2), "Diacetyl Rest", false))
+        expectThat(deser).isEqualTo(TimeBasedSetpoint(62.0.toF(), Duration.ofDays(2), "Diacetyl Rest", true))
     }
 
     @Test
@@ -65,11 +65,11 @@ class TemperatureSetpointDeserializerSpec {
         val json = """{
             "tempSetpoint": "62F",
             "duration": "P2D",
-            "includeRamp": false
+            "includeRamp": true
         }"""
 
         val deser = json.deserialize()
-        expectThat(deser).isEqualTo(TimeBasedSetpoint(62.0.toF(), Duration.ofDays(2), "", false))
+        expectThat(deser).isEqualTo(TimeBasedSetpoint(62.0.toF(), Duration.ofDays(2), "", true))
     }
 
     private fun String.deserialize(): TemperatureSetpoint {
