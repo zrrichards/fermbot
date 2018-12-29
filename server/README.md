@@ -32,10 +32,16 @@ by default 1-wire protocol is to be enabled on GPIO4
 ... in progress ...
 
 ##Typical Workflow:
-1. Configure desired fermentation profile (perhaps prior to or while brewing)
-2. Pitch yeast, (optional: add tilt), insert thermometer, plug in heating/cooling controllers.
-    Displays dashboard with tilt reading, thermometer, profile, and which of heating/cooling is enabled. (all data is ephemeral and just shows current status)
-3. Issue command to "Start" fermentation. Temp/SG data recording is started. (Brewfather uploading starts) and heating/cooling starts.
+The Fermbot workflow can be visualized as a state machine with four states:
+1. Pending Profile - The Fermbot server is up and is ready to be configured with a fermentation profile
+2. Ready - The profile has been configured and the Fermbot is ready to control a fermentation with the given profile
+3. Running - The Fermbot is actively montoring (and controlling) a fermentation
+4. Testing - The fermbot is running through a cycle of hardware testing.
+
+**Below is a state diagram that illustrates the operation of the Fermbot**
+
+### Upon Startup
+The Fermbot will detect whether or not there is an active fermentation already running before it was previously powered off
 
 ## API
 Below describes the API of the webserver portion of Fermbot. The front-end client of this API is in the `../webclient` directory.
