@@ -82,8 +82,7 @@ class HardwareTesterSpec {
 
     @Test
     fun `test full hardware`() {
-        val req = HttpRequest.POST("/test/full-hardware", HeatingTestPayload(Duration.ofMillis(1)))
-        println(objectMapper.writeValueAsString(HeatingTestPayload(Duration.ofSeconds(10))))
+        val req = HttpRequest.POST("/test/full-hardware","""{"stepDuration":"PT0.001S"}""")
         val resp = client.toBlocking().exchange(req, String::class.java)
         expectThat(resp.status).isEqualTo(HttpStatus.OK)
     }

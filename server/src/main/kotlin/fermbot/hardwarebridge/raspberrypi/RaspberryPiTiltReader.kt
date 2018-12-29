@@ -33,7 +33,7 @@ import kotlin.io.readText
  * @version $ 12/5/19
  */
 @Singleton
-@Requires(property="tilt-enabled", value="true")
+@Requires(env=["Raspberry-Pi"], property="tilt-enabled", value="true")
 class RaspberryPiTiltReader @Inject constructor(configuration: Configuration) : ThermoHydrometerReader {
 
     private val logger = LoggerFactory.getLogger(RaspberryPiTiltReader::class.java)

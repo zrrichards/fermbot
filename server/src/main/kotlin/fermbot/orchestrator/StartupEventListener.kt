@@ -17,8 +17,10 @@ import fermbot.Application
 import fermbot.Configuration
 import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Value
+import io.micronaut.context.event.ShutdownEvent
 import io.micronaut.discovery.event.ServiceStartedEvent
 import io.micronaut.runtime.event.annotation.EventListener
+import io.micronaut.runtime.server.event.ServerShutdownEvent
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -44,12 +46,14 @@ class StartupEventListener {
         if (bannerEnabled) {
             logger.info("""
                 
-███████╗███████╗██████╗ ███╗   ███╗██████╗  ██████╗ ████████╗
-██╔════╝██╔════╝██╔══██╗████╗ ████║██╔══██╗██╔═══██╗╚══██╔══╝
-█████╗  █████╗  ██████╔╝██╔████╔██║██████╔╝██║   ██║   ██║   
-██╔══╝  ██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══██╗██║   ██║   ██║   
-██║     ███████╗██║  ██║██║ ╚═╝ ██║██████╔╝╚██████╔╝   ██║   
-╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═════╝  ╚═════╝    ╚═╝   
+  ______                  ____        _   
+ |  ____|                |  _ \      | |  
+ | |__ ___ _ __ _ __ ___ | |_) | ___ | |_ 
+ |  __/ _ \ '__| '_ ` _ \|  _ < / _ \| __|
+ | | |  __/ |  | | | | | | |_) | (_) | |_ 
+ |_|  \___|_|  |_| |_| |_|____/ \___/ \__|
+                                          
+                                          
 """)
         }
         logger.info("Started FermBot v0.1. Device name: " + configuration.deviceName)

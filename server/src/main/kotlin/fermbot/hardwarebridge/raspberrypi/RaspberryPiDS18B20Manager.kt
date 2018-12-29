@@ -10,6 +10,7 @@ import fermbot.hardwarebridge.DefaultDS18B20TemperatureCorrector
 import fermbot.hardwarebridge.DS18B20Manager
 import fermbot.hardwarebridge.TemperatureCorrector
 import fermbot.toC
+import io.micronaut.context.annotation.Requires
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import javax.inject.Inject
@@ -21,6 +22,7 @@ import javax.inject.Singleton
  * @version 12/11/19
  */
 @Singleton
+@Requires(env=["Raspberry-Pi"])
 class RaspberryPiDS18B20Manager @Inject constructor(private val corrector: TemperatureCorrector) : DS18B20Manager {
     private val w1master = W1Master()
 

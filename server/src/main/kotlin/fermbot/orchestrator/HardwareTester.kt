@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 /**
  * A controller that allows the user to verify that all hardware connections have been made correctly.
- * This class cycles through the hardware options on the system and allows the user to verify that things are wokring
+ * This class cycles through the hardware options on the system and allows the user to verify that things are working
  * properly
  * @author Zachary Richards
  * @version 12/22/19

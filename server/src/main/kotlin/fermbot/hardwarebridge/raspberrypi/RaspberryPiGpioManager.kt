@@ -3,7 +3,9 @@ package fermbot.hardwarebridge.raspberrypi
 import com.pi4j.io.gpio.*
 import fermbot.hardwarebridge.DigitalOutput
 import fermbot.hardwarebridge.GpioManager
+import io.micronaut.context.annotation.Requires
 import org.slf4j.LoggerFactory
+import javax.annotation.PreDestroy
 import javax.inject.Singleton
 
 /**
@@ -12,6 +14,7 @@ import javax.inject.Singleton
  * @version 12/12/19
  */
 @Singleton
+@Requires(env=["Raspberry-Pi"])
 class RaspberryPiGpioManager : GpioManager {
 
     private val logger = LoggerFactory.getLogger(RaspberryPiGpioManager::class.java)
@@ -24,6 +27,7 @@ class RaspberryPiGpioManager : GpioManager {
         logger.debug("Initializing Raspberry Pi GPIO Manager")
     }
 
+    @PreDestroy
     override fun shutdown() {
         isShutDown = true
         logger.info("Shutting down GPIO manager")
