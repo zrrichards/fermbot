@@ -63,15 +63,14 @@ class FermentationProfileControllerSpec {
     @Replaces(FileBasedProfilePersister::class)
     @Named(BeanDefinitions.PROFILE_PERSISTER)
     @Singleton
-    class MockPersister(private var persistedProfile: MutableList<TemperatureSetpoint> = mutableListOf()) : Persister<List<TemperatureSetpoint>> { //prevents creating the json file on the filesystem
+    class MockPersister(private var persistedProfile: MutableList<TemperatureSetpoint> = mutableListOf()) : Persister<List<TemperatureSetpoint>> {
+        override fun clear() = persistedProfile.clear()
 
-        override fun hasPersistedData(): Boolean {
-            return persistedProfile.isNotEmpty()
-        }
+        //prevents creating the json file on the filesystem
 
-        override fun read(): List<TemperatureSetpoint> {
-            return persistedProfile
-        }
+        override fun hasPersistedData() = persistedProfile.isNotEmpty()
+
+        override fun read() = persistedProfile
 
         override fun persist(currentProfile: List<TemperatureSetpoint>) {
             persistedProfile = currentProfile.toMutableList()

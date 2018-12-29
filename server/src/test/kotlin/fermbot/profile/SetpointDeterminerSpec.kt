@@ -24,15 +24,9 @@ class SetpointDeterminerSpec {
 
     class SetpointCompletionPersister : Persister<SetpointCompletion> {
         override fun hasPersistedData() = false
-
-        override fun read(): SetpointCompletion {
-            throw UnsupportedOperationException()
-        }
-
-        override fun persist(currentProfile: SetpointCompletion) {
-            //do nothing
-        }
-
+        override fun read() = throw UnsupportedOperationException()
+        override fun persist(currentProfile: SetpointCompletion) { /* do nothing */ }
+        override fun clear() { /* do nothing */ }
     }
 
     @Test

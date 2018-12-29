@@ -43,7 +43,8 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
 
     fun <T: Hydrometer> getSetpoint(hydrometer: Optional<T>): TemperatureSetpoint {
         if (isCurrentStageFulfilled(hydrometer)) {
-            logger.info("Fermentation stage index[$currentSetpointIndex] fulfilled. Moving to next stage")
+            val stageName = currentStage.stageDescription.defaultIfEmpty("$currentSetpointIndex")
+            logger.info("""Fermentation stage "$stageName" fulfilled. Moving to next stage""")
             if (currentSetpointIndex == setpoints.lastIndex) {
                 logger.warn("You are currently at the last setpoint and it has been completed. Continuing to hold temp constant at the current setpoint (${currentStage.tempSetpoint}). Is your batch done?")
             } else {
@@ -90,6 +91,7 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
         get() = setpoints[currentSetpointIndex]
 }
 
+private fun String.defaultIfEmpty(s: String) = if (isEmpty()) { s } else { this }
 
 /**
  * This stores information about the current setpoint. Namely:
