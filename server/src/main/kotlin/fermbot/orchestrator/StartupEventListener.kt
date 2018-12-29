@@ -49,7 +49,6 @@ class StartupEventListener {
  | | |  __/ |  | | | | | | |_) | (_) | |_     _)(  )(_        `-===-'
  |_|  \___|_|  |_| |_| |_|____/ \___/ \__|   `---''---`
                                           
-                                          
 """)
         }
         logger.info("Started FermBot v0.1. Device name: $deviceName")
