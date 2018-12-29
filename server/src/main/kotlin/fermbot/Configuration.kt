@@ -44,4 +44,6 @@ class Configuration {
 
     @Value("\${fermbot.pytilt-script-path}")
     lateinit var pytiltScriptPath: String
+
+    lateinit var heaterPinName: String
 }
