@@ -59,6 +59,10 @@ test {
     useJUnitPlatform()
 }
 
+kapt {
+    correctErrorTypes = true
+}
+
 allOpen {
 	annotation("io.micronaut.aop.Around")
 }

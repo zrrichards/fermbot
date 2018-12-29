@@ -23,7 +23,7 @@ import java.time.Instant
 /**
  * @author Zachary Richards
  */
-open class Tilt @ConstructorProperties("color", "sg", "temp") constructor(private val color: TiltColors,
+class Tilt @ConstructorProperties("color", "sg", "temp") constructor(private val color: TiltColors,
                                                                      override val specificGravity: Double, rawTemp: Double, override val timestamp: Instant = Instant.now()) : ThermoHydrometer {
 
     override val currentTemp = rawTemp.toF() //Tilt readings are always given in Fahrenheit
