@@ -4,11 +4,13 @@ import fermbot.hardwarebridge.DigitalOutput
 import fermbot.hardwarebridge.GpioManager
 import fermbot.monitor.HeatingMode
 import fermbot.profile.BeanDefinitions
+import fermbot.profile.FermbotProperties
 import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Factory
 import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Requires
 import org.slf4j.LoggerFactory
+import java.lang.IllegalArgumentException
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
@@ -103,23 +105,29 @@ interface TemperatureActuator {
 }
 
 @Factory
-class HardwareBackedHeaterCoolerFactory @Inject constructor(private val gpioManager: GpioManager,
-            @Property(name="fermbot.heater.pin-name") private val heaterPinName: String,
-            @Property(name="fermbot.cooler.pin-name") private val coolerPinName: String) : HeaterCoolerFactory {
+class HardwareBackedHeaterCoolerFactory @Inject constructor(private val gpioManager: GpioManager) : HeaterCoolerFactory {
 
     private val logger = LoggerFactory.getLogger(HardwareBackedHeaterCoolerFactory::class.java)
 
     init {
-        require(heaterPinName != coolerPinName) {
-            "Both the heater and cooler are defined on pin $heaterPinName. They must be defined on different pins"
-        }
+        logger.info("Initializing Heater and cooler factory")
     }
+
+    private var heaterPinName: String? = null
+    private var coolerPinName: String? = null
 
     @Bean
     @Singleton
     @Named("heater")
-    @Requires(property="fermbot.heater.enabled", value="true")
-    override fun createHeater(): ActiveHighDigitalOutputDevice {
+    @Requires(property = FermbotProperties.isHeaterEnabled, value="true")
+    override fun createHeater(@Property(name=FermbotProperties.heaterPinName) heaterPinName: String): ActiveHighDigitalOutputDevice {
+
+        if (coolerPinName != null && heaterPinName == coolerPinName) {
+            throw IllegalArgumentException("Both heater and cooler defined on pin $heaterPinName. They must be on different pins")
+        }
+
+        this.heaterPinName = heaterPinName
+
         logger.debug("Registering heater on pin {}", heaterPinName)
         return HardwareBackedActiveHighDigitalOutputDevice(gpioManager.provisionDigitalOutputDevice(heaterPinName, "Heater"))
     }
@@ -127,8 +135,14 @@ class HardwareBackedHeaterCoolerFactory @Inject constructor(private val gpioMana
     @Bean
     @Singleton
     @Named("cooler")
-    @Requires(property="fermbot.cooler.enabled", value="true")
-    override fun createCooler(): ActiveHighDigitalOutputDevice {
+    @Requires(property = FermbotProperties.isCoolerEnabled, value="true")
+    override fun createCooler(@Property(name=FermbotProperties.coolerPinName) coolerPinName: String): ActiveHighDigitalOutputDevice {
+
+        if (heaterPinName != null && coolerPinName == heaterPinName) {
+            throw IllegalArgumentException("Both heater and cooler defined on pin $heaterPinName. They must be on different pins")
+        }
+
+        this.coolerPinName = coolerPinName
         logger.debug("Registering cooler on pin {}", coolerPinName)
         return HardwareBackedActiveHighDigitalOutputDevice(gpioManager.provisionDigitalOutputDevice(coolerPinName, "Cooler"))
     }

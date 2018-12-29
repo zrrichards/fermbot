@@ -9,10 +9,10 @@ interface HeaterCoolerFactory {
     @Bean
     @Singleton
     @Named(value = "heater")
-    fun createHeater(): ActiveHighDigitalOutputDevice
+    fun createHeater(heaterPinName: String): ActiveHighDigitalOutputDevice
 
     @Bean
     @Singleton
     @Named(value = "cooler")
-    fun createCooler(): ActiveHighDigitalOutputDevice
+    fun createCooler(coolerPinName: String): ActiveHighDigitalOutputDevice
 }
