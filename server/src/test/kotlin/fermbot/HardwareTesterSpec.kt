@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fermbot.hardwarebridge.DS18B20
 import fermbot.hardwarebridge.DS18B20Manager
 import fermbot.hardwarebridge.raspberrypi.RaspberryPiDS18B20Manager
+import fermbot.hardwarebridge.simulation.SimulationDs18b20Manager
 import fermbot.hardwarebridge.tempcontrol.HardwareBackedTemperatureActuator
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.HeatingMode
@@ -70,7 +71,7 @@ class HardwareTesterSpec {
         }
     }
 
-    @MockBean(RaspberryPiDS18B20Manager::class)
+    @MockBean(SimulationDs18b20Manager::class)
     fun createManager() : DS18B20Manager {
         return MockDs18b20Manager()
     }
