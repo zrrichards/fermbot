@@ -1,11 +1,9 @@
 package fermbot
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fermbot.hardwarebridge.DS18B20
-import fermbot.hardwarebridge.ThermometerReader
-import fermbot.hardwarebridge.simulation.SimulationDs18b20Manager
 import fermbot.hardwarebridge.tempcontrol.HardwareBackedTemperatureActuator
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
+import fermbot.hardwarebridge.tempcontrol.TemperatureActuatorStatistics
 import fermbot.monitor.HeatingMode
 import fermbot.orchestrator.HardwareTester
 import fermbot.profile.TemperatureControllerTestPayload
@@ -22,10 +20,7 @@ import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.Duration
-import java.time.Instant
-import java.util.*
 import javax.inject.Inject
-import kotlin.random.Random
 
 /**
  *
@@ -51,16 +46,18 @@ open class HardwareTesterSpec {
     private lateinit var objectMapper: ObjectMapper
 
     open class MockTemperatureActuator : TemperatureActuator {
-        private var currentHeatingMode = HeatingMode.OFF
+        override val statistics = TemperatureActuatorStatistics()
+
+        override fun resetStatistics() {
+            statistics.reset()
+        }
+
+        override var currentHeatingMode = HeatingMode.OFF
 
         override fun setHeatingMode(heatingMode: HeatingMode): HeatingMode {
             val tmp = currentHeatingMode
             currentHeatingMode = heatingMode
             return tmp
-        }
-
-        override fun getCurrentHeatingMode(): HeatingMode {
-            return currentHeatingMode
         }
     }
 
@@ -79,25 +76,25 @@ open class HardwareTesterSpec {
     @Test
     fun `can test heat for 5 milliseconds`() {
         val test = TemperatureControllerTestPayload(HeatingMode.HEATING, Duration.ofMillis(1))
-        val currentMode = temperatureActuator.getCurrentHeatingMode()
+        val currentMode = temperatureActuator.currentHeatingMode
         expectThat(currentMode).isEqualTo(HeatingMode.OFF)
         controller.testTemperatureControl(test)
         verify(exactly = 1) {
             temperatureActuator.setHeatingMode(HeatingMode.HEATING)
         }
-        expectThat(temperatureActuator.getCurrentHeatingMode()).isEqualTo(HeatingMode.OFF)
+        expectThat(temperatureActuator.currentHeatingMode).isEqualTo(HeatingMode.OFF)
     }
 
     @Test
     fun `can test cooling for 5 milliseconds`() {
         val test = TemperatureControllerTestPayload(HeatingMode.COOLING, Duration.ofMillis(1))
-        val currentMode = temperatureActuator.getCurrentHeatingMode()
+        val currentMode = temperatureActuator.currentHeatingMode
         expectThat(currentMode).isEqualTo(HeatingMode.OFF)
         controller.testTemperatureControl(test)
         verify(exactly = 1) {
             temperatureActuator.setHeatingMode(HeatingMode.COOLING)
         }
-        expectThat(temperatureActuator.getCurrentHeatingMode()).isEqualTo(HeatingMode.OFF)
+        expectThat(temperatureActuator.currentHeatingMode).isEqualTo(HeatingMode.OFF)
     }
 
     @Test
@@ -111,6 +108,6 @@ open class HardwareTesterSpec {
             temperatureActuator.setHeatingMode(HeatingMode.HEATING)
         }
         //todo mock "sleeper"
-        expectThat(temperatureActuator.getCurrentHeatingMode()).isEqualTo(HeatingMode.OFF)
+        expectThat(temperatureActuator.currentHeatingMode).isEqualTo(HeatingMode.OFF)
     }
 }

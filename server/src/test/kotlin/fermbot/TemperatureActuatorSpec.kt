@@ -1,19 +1,15 @@
 package fermbot
 
-import fermbot.hardwarebridge.tempcontrol.*
+import fermbot.hardwarebridge.tempcontrol.ActiveHighDigitalOutputDevice
+import fermbot.hardwarebridge.tempcontrol.HardwareBackedTemperatureActuator
+import fermbot.hardwarebridge.tempcontrol.HeaterCoolerConfiguration
 import fermbot.monitor.HeatingMode
-import io.micronaut.context.annotation.Bean
-import io.micronaut.context.annotation.Factory
-import io.micronaut.context.annotation.Replaces
-import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.util.*
-import javax.inject.Named
-import javax.inject.Singleton
 
 /**
  *
@@ -26,15 +22,15 @@ class TemperatureActuatorSpec {
     fun `can create controller and read its current state`() {
         val mockHeater = spyDevice()
         val mockCooler = spyDevice()
-        val controller = HardwareBackedTemperatureActuator(mockHeater, mockCooler)
-        expectThat(controller.getCurrentHeatingMode()).isEqualTo(HeatingMode.OFF)
+        val controller = HardwareBackedTemperatureActuator(mockHeater, mockCooler, HeaterCoolerConfiguration.BOTH)
+        expectThat(controller.currentHeatingMode).isEqualTo(HeatingMode.OFF)
     }
 
     @Test
     fun `can enable heating`() {
         val mockHeater = spyDevice()
         val mockCooler = spyDevice()
-        val controller = HardwareBackedTemperatureActuator(mockHeater, mockCooler)
+        val controller = HardwareBackedTemperatureActuator(mockHeater, mockCooler, HeaterCoolerConfiguration.BOTH)
 
         controller.setHeatingMode(HeatingMode.HEATING)
 

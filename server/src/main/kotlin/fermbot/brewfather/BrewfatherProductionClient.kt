@@ -48,11 +48,11 @@ class BrewfatherProductionClient @Inject constructor(@Property(name="brewfather.
 
     @Inject private lateinit var systemStatistics: SystemStatistics
 
-    override fun updateBatchDetails(currentTemp: Optional<Temperature>, specificGravity: Optional<Double>): BrewfatherUploadResult {
+    override fun updateBatchDetails(currentTemp: Optional<Temperature>, specificGravity: Optional<Double>, comment: String): BrewfatherUploadResult {
         require(currentTemp.isPresent || specificGravity.isPresent) {
             "CurrentTemp.isPresent? ${currentTemp.isPresent}, SpecificGravity.isPresent? ${specificGravity.isPresent}"
         }
-        val payload = brewfatherPayloadFactory.createBrewfatherPayload(currentTemp, specificGravity)
+        val payload = brewfatherPayloadFactory.createBrewfatherPayload(currentTemp, specificGravity, comment)
         var attempt = 0
         var lastException: Exception? = null
         do {

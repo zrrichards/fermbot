@@ -50,10 +50,12 @@ class FermentationMonitorTiltEnabledSpec {
 
         var currentTemp: Temperature = Double.MIN_VALUE.toF()
         var specificGravity = Double.MIN_VALUE
+        var comment = ""
 
-        override fun updateBatchDetails(currentTemp: Optional<Temperature>, specificGravity: Optional<Double>): BrewfatherUploadResult {
+        override fun updateBatchDetails(currentTemp: Optional<Temperature>, specificGravity: Optional<Double>, comment: String): BrewfatherUploadResult {
             currentTemp.ifPresent { this.currentTemp = it }
             specificGravity.ifPresent { this.specificGravity = it }
+            this.comment = comment
             return BrewfatherUploadResult("success")
         }
     }

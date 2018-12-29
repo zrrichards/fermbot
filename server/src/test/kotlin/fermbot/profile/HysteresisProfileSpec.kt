@@ -3,6 +3,7 @@ package fermbot.profile
 import fermbot.Temperature
 import fermbot.Thermometer
 import fermbot.hardwarebridge.DS18B20
+import fermbot.hardwarebridge.tempcontrol.HeaterCoolerConfiguration
 import fermbot.monitor.HeatingMode
 import fermbot.monitor.HeatingMode.*
 import fermbot.profile.HysteresisStatus.*
@@ -21,14 +22,14 @@ class HysteresisProfileSpec {
 
     @Test
     fun `if thermometer is not present than heating mode off is returned`() {
-        val profile = symmetricHysteresisProfile(TemperatureWindow(1.0, Temperature.Unit.FAHRENHEIT))
+        val profile = symmetricHysteresisProfile(TemperatureWindow(1.0, Temperature.Unit.FAHRENHEIT), HeaterCoolerConfiguration.BOTH)
         expectThat(profile.determineHeatingMode(65.5.toF(), Optional.empty(), HeatingMode.OFF)).isEqualTo(HeatingMode.OFF)
     }
 
     @Test
     fun `if temp is within hysteresis range then off is returned`() {
         val threshold = TemperatureWindow(1.0, Temperature.Unit.FAHRENHEIT)
-        val profile = symmetricHysteresisProfile(threshold)
+        val profile = symmetricHysteresisProfile(threshold, HeaterCoolerConfiguration.BOTH)
         val setpoint = 45.5.toF()
         val temp = setpoint + threshold
         val thermometer = thermoOptional(temp)
@@ -60,7 +61,7 @@ class HysteresisProfileSpec {
         )
 
         val threshold = TemperatureWindow(1.0, Temperature.Unit.FAHRENHEIT)
-        val profile = symmetricHysteresisProfile(threshold)
+        val profile = symmetricHysteresisProfile(threshold, HeaterCoolerConfiguration.BOTH)
         val setpoint = 45.5.toF()
 
         fun getOffset(status: HysteresisStatus): Temperature {
@@ -89,7 +90,7 @@ class HysteresisProfileSpec {
     @Test
     fun `when temperature is equal max, then max is returned`() {
         val threshold = TemperatureWindow(1.0, Temperature.Unit.FAHRENHEIT)
-        val profile = symmetricHysteresisProfile(threshold)
+        val profile = symmetricHysteresisProfile(threshold, HeaterCoolerConfiguration.BOTH)
         val setpoint = 45.5.toF()
         val temp = profile.max + setpoint
         expectThat(profile.getHysteresisStatus(setpoint, temp)).isEqualTo(MAX)
@@ -98,7 +99,7 @@ class HysteresisProfileSpec {
     @Test
     fun `when temperature is above max, then max is returned`() {
         val threshold = TemperatureWindow(1.0, Temperature.Unit.FAHRENHEIT)
-        val profile = symmetricHysteresisProfile(threshold)
+        val profile = symmetricHysteresisProfile(threshold, HeaterCoolerConfiguration.BOTH)
         val setpoint = 45.5.toF()
         val temp = profile.max + setpoint + 1.0.toF()
         expectThat(profile.getHysteresisStatus(setpoint, temp)).isEqualTo(MAX)
@@ -107,7 +108,7 @@ class HysteresisProfileSpec {
     @Test
     fun `when temperature is equal min, then min is returned`() {
         val threshold = TemperatureWindow(1.0, Temperature.Unit.FAHRENHEIT)
-        val profile = symmetricHysteresisProfile(threshold)
+        val profile = symmetricHysteresisProfile(threshold, HeaterCoolerConfiguration.BOTH)
         val setpoint = 45.5.toF()
         val temp = setpoint - profile.min
         expectThat(profile.getHysteresisStatus(setpoint, temp)).isEqualTo(HysteresisStatus.MIN)
@@ -116,7 +117,7 @@ class HysteresisProfileSpec {
     @Test
     fun `when temperature is above min, then min is returned`() {
         val threshold = TemperatureWindow(1.0, Temperature.Unit.FAHRENHEIT)
-        val profile = symmetricHysteresisProfile(threshold)
+        val profile = symmetricHysteresisProfile(threshold, HeaterCoolerConfiguration.BOTH)
         val setpoint = 45.5.toF()
         val temp = setpoint - profile.min - 1.0.toF()
         expectThat(profile.getHysteresisStatus(setpoint, temp)).isEqualTo(HysteresisStatus.MIN)
@@ -125,7 +126,7 @@ class HysteresisProfileSpec {
     @Test
     fun `when temperature is equal upperThreshold then above is returned`() {
         val threshold = TemperatureWindow(1.0, Temperature.Unit.FAHRENHEIT)
-        val profile = symmetricHysteresisProfile(threshold)
+        val profile = symmetricHysteresisProfile(threshold, HeaterCoolerConfiguration.BOTH)
         val setpoint = 45.5.toF()
         val temp = profile.upperThreshold + setpoint
         expectThat(profile.getHysteresisStatus(setpoint, temp)).isEqualTo(HysteresisStatus.ABOVE)
@@ -134,7 +135,7 @@ class HysteresisProfileSpec {
     @Test
     fun `when temperature is equal lowerThreshold, then below is returned`() {
         val threshold = TemperatureWindow(1.0, Temperature.Unit.FAHRENHEIT)
-        val profile = symmetricHysteresisProfile(threshold)
+        val profile = symmetricHysteresisProfile(threshold, HeaterCoolerConfiguration.BOTH)
         val setpoint = 45.5.toF()
         val temp = setpoint - profile.lowerThreshold
         expectThat(profile.getHysteresisStatus(setpoint, temp)).isEqualTo(HysteresisStatus.BELOW)
@@ -143,7 +144,7 @@ class HysteresisProfileSpec {
     @Test
     fun `when temp is between upper and lower, within is returned`() {
         val threshold = TemperatureWindow(1.0, Temperature.Unit.FAHRENHEIT)
-        val profile = symmetricHysteresisProfile(threshold)
+        val profile = symmetricHysteresisProfile(threshold, HeaterCoolerConfiguration.BOTH)
         val setpoint = 45.5.toF()
         val temp = setpoint
         expectThat(profile.getHysteresisStatus(setpoint, temp)).isEqualTo(HysteresisStatus.WITHIN)

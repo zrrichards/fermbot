@@ -29,7 +29,7 @@ class HardwareTester @Inject constructor(private val temperatureActuator: Temper
      */
     @Post("/heating-mode")
     fun testTemperatureControl(@Body test: TemperatureControllerTestPayload) {
-        val initialHeatingMode = temperatureActuator.getCurrentHeatingMode()
+        val initialHeatingMode = temperatureActuator.currentHeatingMode
         val duration = test.duration.coerceAtMost(Duration.ofSeconds(30))
         if (duration != test.duration) {
             logger.warn("Ignoring given duration value of $duration. Using maximum value of 30 seconds")
@@ -68,6 +68,8 @@ class HardwareTester @Inject constructor(private val temperatureActuator: Temper
     }
 
     private fun getHeatingModeToTest(currentRep: Int): HeatingMode {
+
+        //FIXME ignore modes that aren't configured
         val index = currentRep.rem(HeatingMode.values().size)
         return HeatingMode.values()[index]
     }

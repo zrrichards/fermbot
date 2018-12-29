@@ -1,10 +1,5 @@
 package fermbot.profile
 
-import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.*
-import fermbot.Temperature
-import fermbot.cascadeOptionals
 import fermbot.hardwarebridge.ThermoHydrometerReader
 import fermbot.hardwarebridge.ThermometerReader
 import fermbot.hardwarebridge.simulation.SimulationDs18b20Manager
@@ -21,7 +16,6 @@ import java.time.Duration
 import java.util.concurrent.ScheduledFuture
 import javax.inject.Inject
 import javax.inject.Named
-import javax.inject.Singleton
 import kotlin.math.abs
 import kotlin.math.log10
 
@@ -146,7 +140,7 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
         currentProfile.clear()
     }
 
-    fun getCurrentHeatingMode() = temperatureActuator.getCurrentHeatingMode()//FIXME I don't really like reaching through the rest controller
+    fun getCurrentHeatingMode() = temperatureActuator.currentHeatingMode //FIXME I don't really like reaching through the rest controller
 
     fun isProfileSet(): Boolean {
         return currentProfile.isNotEmpty()
@@ -160,59 +154,6 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
             temperatureActuator.setHeatingMode(HeatingMode.OFF)
         }
         logger.info("Control cancelled. Heating mode set to Off")
-    }
-}
-
-class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer, private val hydrometerReader: ThermoHydrometerReader, private val hysteresisProfile: HysteresisProfile, private val thermometerReader: ThermometerReader, private val temperatureActuator: TemperatureActuator, private val fermentationMonitorTask: FermentationMonitorTask) : Runnable {
-
-    private val logger = LoggerFactory.getLogger(TemperatureControlTask::class.java)
-
-    override fun run() {
-        val thermohydrometer = hydrometerReader.readTilt()
-        val setpoint = setpointDeterminer.getSetpoint(thermohydrometer)
-        val currentHeatingMode = temperatureActuator.getCurrentHeatingMode()
-        val thermometer = thermometerReader.getDevices()
-
-        // if the tilt and ds18b20 are both present, use the ds18b20, otherwise use the tilt
-        val bestThermometer = cascadeOptionals(thermohydrometer, thermometer)
-
-        val currentTempString = bestThermometer.map { it.currentTemp.toStringF() }.orElse("None")
-
-        val desiredHeatingMode = hysteresisProfile.determineHeatingMode(setpoint.tempSetpoint, bestThermometer, currentHeatingMode)
-        if (currentHeatingMode != desiredHeatingMode) {
-            logger.info("Current Setpoint: $setpoint. Current Temperature: $currentTempString Heating Mode: $currentHeatingMode. Changing Heating Mode to: $desiredHeatingMode.")
-            temperatureActuator.setHeatingMode(desiredHeatingMode)
-            fermentationMonitorTask.run() // if we change heating modes, we need to capture it
-        }
-    }
-}
-
-@Singleton
-class TemperatureSetpointDeserializer : JsonDeserializer<TemperatureSetpoint>() { //can't be an object due to Micronaut code generation
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): TemperatureSetpoint {
-        val node = p.codec.readTree<JsonNode>(p)
-        val tempSetpointNode = node.get("tempSetpoint")
-        val tempSetpoint = p.codec.treeToValue(tempSetpointNode, Temperature::class.java)
-        val stageDescription = if (node.has("stageDescription")) {
-                node.get("stageDescription").textValue()
-            } else {
-                ""
-            }
-        return if (node.has("untilSg")) {
-                val untilSg = node.get("untilSg").doubleValue()
-                SpecificGravityBasedSetpoint(tempSetpoint, untilSg, stageDescription)
-            } else {
-                val duration = p.codec.treeToValue(node.get("duration"), Duration::class.java)
-                val includeRamp = node.get("includeRamp").booleanValue()
-                TimeBasedSetpoint(tempSetpoint, duration, stageDescription, includeRamp)
-            }
-    }
-}
-
-@Singleton
-class DurationSerializer : JsonSerializer<Duration>() {
-    override fun serialize(value: Duration, gen: JsonGenerator, serializers: SerializerProvider) {
-        gen.writeString(value.toString())
     }
 }
 

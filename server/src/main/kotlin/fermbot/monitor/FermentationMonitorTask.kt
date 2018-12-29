@@ -81,12 +81,12 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
             logger.info(output.toString())
         if (fermentationProfileController != null) {
             queue.add(FermentationSnapshot(
-                    currentSg = currentSg,
-                    temp = currentTemp,
-                    currentSetpointIndex = fermentationProfileController!!.currentSetpointIndex,
-                    heatingMode = fermentationProfileController!!.getCurrentHeatingMode(),
-                    setpoint = fermentationProfileController!!.currentSetpoint.tempSetpoint,
-                    stageDescription = fermentationProfileController!!.currentSetpoint.stageDescription
+                currentSg = currentSg,
+                temp = currentTemp,
+                currentSetpointIndex = fermentationProfileController!!.currentSetpointIndex,
+                heatingMode = fermentationProfileController!!.getCurrentHeatingMode(),
+                setpoint = fermentationProfileController!!.currentSetpoint.tempSetpoint,
+                stageDescription = fermentationProfileController!!.currentSetpoint.stageDescription
             ))
         }
 
@@ -96,7 +96,14 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
                 val tempOptional = Optional.ofNullable(currentTemp)
                 val sgOptional = Optional.ofNullable(currentSg)
 
-                brewfather.get().updateBatchDetails(tempOptional, sgOptional)
+                val commentString = """Current Setpoint: ${fermentationProfileController?.currentSetpoint?.tempSetpoint}\nCurrent Heating Mode: ${fermentationProfileController?.getCurrentHeatingMode()}"""
+
+                val result = brewfather.get().updateBatchDetails(tempOptional, sgOptional, commentString)
+                if (result.isSuccessful()) {
+                    logger.info("Successfully logged to brewfather.")
+                } else {
+                    logger.warn("Unable to log to brewfather. reason: ${result.result}")
+                }
             } else {
                 logger.warn("Brewfather configured but current temp and specific gravity cannot be read. Nothing to upload.")
             }

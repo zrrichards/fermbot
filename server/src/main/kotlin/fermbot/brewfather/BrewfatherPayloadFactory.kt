@@ -22,12 +22,13 @@ import javax.inject.Singleton
 class BrewfatherPayloadFactory {
 
    //TODO store device name in bean
-   fun createBrewfatherPayload(temp: Optional<Temperature>, gravity: Optional<Double>): BrewfatherPayload {
+   fun createBrewfatherPayload(temp: Optional<Temperature>, gravity: Optional<Double>, comment: String): BrewfatherPayload {
       return BrewfatherPayload(name = "test",
                                temp = temp.ifPresentOrNull { it.value },
                                temp_unit = temp.ifPresentOrNull { it.unit.symbol },
                                gravity = gravity.getOrNull(),
-                               gravity_unit = "G")
+                               gravity_unit = "G",
+                               comment = if (comment.isBlank()) { null } else { comment })
    }
 }
 
