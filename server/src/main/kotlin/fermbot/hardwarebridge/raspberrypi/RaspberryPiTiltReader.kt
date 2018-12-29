@@ -68,12 +68,12 @@ class RaspberryPiTiltReader : ThermoHydrometerReader {
 @Singleton
 @Primary
 @Requires(property="tilt-enabled", notEquals="true")
-class RaspberryPiNullTiltReader : ThermoHydrometerReader {
+class NullTiltReader : ThermoHydrometerReader {
 
-    private val logger = LoggerFactory.getLogger(NullThermometerReader::class.java)
+    private val logger = LoggerFactory.getLogger(NullTiltReader::class.java)
 
     init {
-        logger.debug("Tilt is disabled")
+        logger.info("Loading NullTiltReader because Tilt is disabled")
     }
 
     override fun readTilt(): Optional<ThermoHydrometer> {

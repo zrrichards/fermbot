@@ -34,7 +34,7 @@ import javax.inject.Singleton
  * @version $ 12/5/19
  */
 @Singleton
-@Requires(property="brewfather.custom-stream-id")
+@Requires(property="brewfather.enabed", value="true")
 class BrewfatherProductionClient @Inject constructor(@Property(name="brewfather.custom-stream-id") private val brewfatherCustomStreamId: String, private val brewfatherPayloadFactory: BrewfatherPayloadFactory) : Brewfather {
 
     private val BREWFATHER_URL = "http://log.brewfather.net/stream?id=$brewfatherCustomStreamId"

@@ -29,15 +29,16 @@ class RaspberryPiDS18B20Manager @Inject constructor(private val corrector: Tempe
     private val logger = LoggerFactory.getLogger(RaspberryPiDS18B20Manager::class.java)
 
     init {
-        if (logger.isDebugEnabled) {
-            logger.debug("W1Devices present:\n$w1master")
-        }
+        "Initializing: ${this.javaClass.simpleName}"
     }
 
     /**
      * Read DS18B20 device and return it. In order to 'reread' a thermometer, this method must be called multiple times
      */
     override fun getDevices(): Optional<Thermometer> {
+        if (logger.isDebugEnabled) {
+            logger.debug("W1Devices present:\n$w1master")
+        }
         val w1Devices = w1master.getDevices<W1Device>(TmpDS18B20DeviceType.FAMILY_CODE)
         check(w1Devices.size == 1)  { "Only a single DS18B20 is supported right now. Number found: ${w1Devices.size}. Please report this issue on GitHub"}
         val device = w1Devices[0]
