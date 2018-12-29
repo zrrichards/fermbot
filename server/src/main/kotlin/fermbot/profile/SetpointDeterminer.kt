@@ -111,12 +111,12 @@ class SetpointCompletionPersister @Inject constructor(private val objectMapper: 
     override fun hasPersistedData() = currentProfileFile.exists() && currentProfileFile.readBytes().isNotEmpty()
 
     override fun read(): SetpointCompletion {
-        logger.info("Reading fermentation profile from: {}", currentProfileFile.absolutePath)
+        logger.info("Reading setpoint completion from: {}", currentProfileFile.absolutePath)
         return objectMapper.readValue<SetpointCompletion>(currentProfileFile)
     }
 
     override fun persist(currentProfile: SetpointCompletion) {
-        logger.info("Persisting fermentation profile to: {}", currentProfileFile.absolutePath)
+        logger.info("Persisting setpoint completion to: {}", currentProfileFile.absolutePath)
         currentProfileFile.writeText(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(currentProfile))
     }
 

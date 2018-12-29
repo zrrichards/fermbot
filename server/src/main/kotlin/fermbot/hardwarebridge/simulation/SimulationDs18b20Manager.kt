@@ -3,8 +3,6 @@ package fermbot.hardwarebridge.simulation
 import fermbot.Thermometer
 import fermbot.hardwarebridge.DS18B20
 import fermbot.hardwarebridge.ThermometerReader
-import fermbot.hardwarebridge.raspberrypi.RaspberryPiDS18B20Manager
-import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.HeatingMode
 import fermbot.profile.FermentationProfileController
 import fermbot.toF
@@ -12,7 +10,6 @@ import io.micronaut.context.annotation.Requires
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.*
-import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.random.Random
 
@@ -36,7 +33,7 @@ class SimulationDs18b20Manager : ThermometerReader {
     override fun getDevices(): Optional<Thermometer> {
         logger.debug("Invoking simulation DS18B20 Reader")
         val heatingMode = fermentationProfileController?.getCurrentHeatingMode() ?: HeatingMode.OFF
-        val offset = Random.nextDouble(0.2)
+        val changeInTemp = Random.nextDouble(0.1)
 
         //if temperature control is off generate some random wobble attributable to environmental conditions
         val sgn = when (heatingMode) {
@@ -45,7 +42,7 @@ class SimulationDs18b20Manager : ThermometerReader {
             HeatingMode.COOLING ->  -1
         }
 
-        val nextTemp = prevTemp + (sgn * offset).toF()
+        val nextTemp = prevTemp + (sgn * changeInTemp).toF()
         prevTemp = nextTemp
         return Optional.of(DS18B20("simulation-id", nextTemp, Instant.now()))
     }
