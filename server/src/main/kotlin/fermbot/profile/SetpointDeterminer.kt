@@ -119,7 +119,7 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
     }
 
     val currentStage
-        get() = setpoints[currentSetpointIndex]
+        get() = if (currentSetpointIndex == setpoints.size) { setpoints.last() } else { setpoints[currentSetpointIndex] }
 }
 
 operator fun Duration.div(other: Duration) = toMillis().toDouble() / other.toMillis().toDouble()

@@ -156,7 +156,9 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
         logger.info("Cancelling fermentation control")
         temperatureControlFuture?.cancel(true)
         fermentationMonitorFuture?.cancel(true)
-        temperatureActuator.setHeatingMode(HeatingMode.OFF)
+        if (getCurrentHeatingMode() != HeatingMode.OFF) {
+            temperatureActuator.setHeatingMode(HeatingMode.OFF)
+        }
         logger.info("Control cancelled. Heating mode set to Off")
     }
 }
