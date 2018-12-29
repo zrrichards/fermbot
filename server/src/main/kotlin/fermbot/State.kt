@@ -18,12 +18,21 @@ sealed class State {
 
     fun isValidNextState(state: State) = (state == this || state in validNextStages)
 
+    open fun persist() { /* do nothing by default */ }
+
     object PENDING_PROFILE: State() {
+        override fun persist() {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
         override val validNextStages = listOf(TESTING, READY)
         override val name = "Pending Profile"
     }
 
     object READY: State() {
+        override fun persist() {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
         override val validNextStages = listOf(PENDING_PROFILE, RUNNING)
         override val name = "Ready"
     }
@@ -34,6 +43,9 @@ sealed class State {
     }
 
     object RUNNING: State() {
+        override fun persist() {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
         override val validNextStages = listOf(PENDING_PROFILE, READY)
         override val name = "Running"
     }
