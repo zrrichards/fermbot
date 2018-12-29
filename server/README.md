@@ -22,6 +22,8 @@ Below is how to assemble the hardware. See the [BOM](BOM.md) document for the re
 
 by default 1-wire protocol is to be enabled on GPIO4
 
+... in progress ...
+
 ## API
 Below describes the API of the webserver portion of Fermbot. The front-end client of this API is in the `../webclient` directory.
 
@@ -35,7 +37,7 @@ Here is an example of how to configure the following fermentation profile (here 
 |62F         |For 2 days      |Diacetyl Rest       |false                 |
 |34F         |For 14 days     |Cold Crash          |true                  |
 
-*Note: Including the ramp for a specific-gravity based setpoint doesn't make sense, there is no 'ramp' to a gravity. Thus, the "includeRamp" property is not applicable
+*Note: Including the ramp for a specific-gravity based setpoint is nonsensical, there is no 'ramp' to a gravity. Thus, the "includeRamp" property is not applicable
 setting the ramp to 'false' for the 62F stage means that the beer will be held for two days at 62F, regardless of the amount of time it takes for the beer to reach that temperature.
 The setting of the ramp to 'true' for the 34F means that the 14day clock will start ticking as soon as this stage starts, so if it takes the beer 2 days to go from 62F to 34F, then
 the beer will be held at 34F for 12 days (14 days in the setpoint minus the two days it takes to reach the setpoint)*
@@ -66,3 +68,9 @@ the beer will be held at 34F for 12 days (14 days in the setpoint minus the two 
 The fermentation profile can be retrieved or changed via a GET or POST request to the "/profile" URL.
 
 The JSON payload of the current stage can be retrieved by issuing a GET request to the "/profile/currentStage" URL
+The current stage can be immediately set by sending a POST request to "/profile/currentStage" containing the 0-based index of the stage. For example, to immediately change the above profile to the 
+"diacetyl rest stage", send a post request with the String "1" to the given URL
+
+Each time the profile is updated, it is persisted to disk and will be retrieved upon next startup. The profile is serialized to JSON and written under 
+`./.fermbot/current-profile.json` and the current stage (integer index of the stage within the profile) is written under
+`./.fermbot/current-profile-stage`
