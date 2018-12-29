@@ -15,6 +15,13 @@ The Fermbot is broken down into two modules:
 2. The controller is responsible for activating the heating and cooling relays to control fermentation
 
 ##Setup and Installation
+1. Install docker
+2. Get the image on your Pi (pull from repo) or build yourself via `docker build .`
+3. Start the container via:
+```
+docker run -p 8080:8080 <image id>
+```
+4. Run the hardware test to ensure things are working properly `./full-hardware-test.sh`
 
 
 ##Hardware Requirements

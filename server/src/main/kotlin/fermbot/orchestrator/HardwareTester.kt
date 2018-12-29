@@ -45,16 +45,24 @@ class HardwareTester @Inject constructor(private val temperatureActuator: Temper
     fun testFullHardware(@Body heatingTestPayload: HeatingTestPayload) {
         val stepDuration = heatingTestPayload.stepDuration
         val reps = HeatingMode.values().size * 3 //3 heating modes 3 times
-        logger.info("===== Starting hardware test $reps times. Step duration: ${stepDuration.seconds} seconds =====")
+        logger.info("\n\n\n===== Starting hardware test. Repeating $reps times. Step duration: ${stepDuration.seconds} seconds =====")
         repeat(reps) { currentRep ->
             val modeToTest = getHeatingModeToTest(currentRep)
             logger.info("Activating heating mode: $modeToTest")
+
+            if (modeToTest != HeatingMode.OFF) {
+                logger.info("\tCorresponding device should be on (and other device should be off)")
+            } else {
+                logger.info("\tBoth devices should be off")
+            }
+
             temperatureActuator.setHeatingMode(modeToTest)
             val thermometer = dS18B20Manager.getDevices()
             logger.info("Thermometer (id=${thermometer.id}) is reading: ${thermometer.currentTemp.asF()}F")
+            logger.info("End of iteration ${currentRep + 1}/$reps. Pausing for $stepDuration\n")
             Thread.sleep(stepDuration.toMillis())
         }
-        logger.info("===== Hardware Test complete =====")
+        logger.info("===== Hardware Test complete =====\n\n\n")
     }
 
     private fun getHeatingModeToTest(currentRep: Int): HeatingMode {
