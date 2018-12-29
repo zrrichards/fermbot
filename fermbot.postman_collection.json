@@ -74,14 +74,53 @@
 		},
 		{
 			"name": "Get Profile",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
-				"method": "POST",
+				"method": "GET",
 				"header": [
 					{
 						"key": "Content-Type",
 						"name": "Content-Type",
-						"value": "application/json",
-						"type": "text"
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"tempSetpoint\": \"48F\",\n        \"untilSg\": 1.023,\n        \"stageDescription\": \"Primary\"\n    },\n    {\n        \"tempSetpoint\": \"62F\",\n        \"duration\": \"P2D\",\n        \"stageDescription\": \"Diacetyl Rest\",\n        \"includeRamp\": false\n    },\n    {\n        \"tempSetpoint\": \"34F\",\n        \"duration\": \"P14D\",\n        \"stageDescription\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/profile",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Current State",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
 					}
 				],
 				"body": {
@@ -133,6 +172,23 @@
 					],
 					"path": [
 						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Start",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/start",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"start"
 					]
 				}
 			},
