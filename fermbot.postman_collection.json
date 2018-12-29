@@ -53,7 +53,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "[\n    {\n        \"tempSetpoint\": \"48F\",\n        \"untilSg\": 1.023,\n        \"stageDescription\": \"Primary\"\n    },\n    {\n        \"tempSetpoint\": \"62F\",\n        \"duration\": \"P2D\",\n        \"stageDescription\": \"Diacetyl Rest\",\n        \"includeRamp\": false\n    },\n    {\n        \"tempSetpoint\": \"34F\",\n        \"duration\": \"P14D\",\n        \"stageDescription\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
+					"raw": "[\n\t{\n        \"tempSetpoint\": \"48F\",\n        \"untilSg\": 1.025,\n        \"stageDescription\": \"Primary\"\n\t},\n    {\n        \"tempSetpoint\": \"65F\",\n        \"duration\": \"PT50S\",\n        \"stageDescription\": \"Diacetyl Rest\",\n        \"includeRamp\": true\n    },\n    {\n        \"tempSetpoint\": \"34F\",\n        \"duration\": \"PT50S\",\n        \"stageDescription\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -139,6 +139,78 @@
 					],
 					"path": [
 						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Status",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"tempSetpoint\": \"48F\",\n        \"untilSg\": 1.023,\n        \"stageDescription\": \"Primary\"\n    },\n    {\n        \"tempSetpoint\": \"62F\",\n        \"duration\": \"P2D\",\n        \"stageDescription\": \"Diacetyl Rest\",\n        \"includeRamp\": false\n    },\n    {\n        \"tempSetpoint\": \"34F\",\n        \"duration\": \"P14D\",\n        \"stageDescription\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/status",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Snapshots",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"tempSetpoint\": \"48F\",\n        \"untilSg\": 1.023,\n        \"stageDescription\": \"Primary\"\n    },\n    {\n        \"tempSetpoint\": \"62F\",\n        \"duration\": \"P2D\",\n        \"stageDescription\": \"Diacetyl Rest\",\n        \"includeRamp\": false\n    },\n    {\n        \"tempSetpoint\": \"34F\",\n        \"duration\": \"P14D\",\n        \"stageDescription\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/snapshots",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"snapshots"
 					]
 				}
 			},
