@@ -14,7 +14,9 @@ package fermbot.hardwarebridge.raspberrypi
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fermbot.hardwarebridge.*
+import fermbot.hardwarebridge.ThermoHydrometer
+import fermbot.hardwarebridge.ThermoHydrometerReader
+import fermbot.hardwarebridge.Tilt
 import io.micronaut.context.annotation.Primary
 import io.micronaut.context.annotation.Requires
 import io.micronaut.context.annotation.Value
@@ -24,7 +26,6 @@ import java.io.File
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.io.readText
 
@@ -39,7 +40,7 @@ class RaspberryPiTiltReader : ThermoHydrometerReader {
     private val logger = LoggerFactory.getLogger(RaspberryPiTiltReader::class.java)
 
     init {
-        logger.debug("Tilt is enabled. Loading reader")
+        logger.info("Tilt is enabled. Loading Raspberry Pi reader")
     }
 
     @Value("\${fermbot.pytilt-script-path}")

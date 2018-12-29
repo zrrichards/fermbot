@@ -19,80 +19,57 @@ data class Temperature(val value: Double, val unit: Unit) {
         CELSIUS({ a -> a * 1.8 + 32}, "C"),
         FAHRENHEIT({ a -> (a - 32) / 1.8}, "F");
 
-        override fun toString(): String {
-            return symbol
-        }
+        override fun toString() = symbol
     }
 
-    fun get(unit: Unit): Double {
-        return if (unit == this.unit) {
+    fun get(unit: Unit) = if (unit == this.unit) {
             value
         } else {
             this.unit.converter(value)
         }
-    }
 
     /**
      * Returns temperature in the format of:
      * "64.8F", "43.0C" etc.
      */
-    override fun toString() : String {
-        return "$value${unit.symbol}"
-    }
+    override fun toString() =  "$value${unit.symbol}"
 
-    fun asF(): Double {
-        return get(Unit.FAHRENHEIT)
-    }
+    fun asF() = get(Unit.FAHRENHEIT)
 
-    fun asC(): Double {
-        return get(Unit.CELSIUS)
-    }
+    fun asC() = get(Unit.CELSIUS)
 
-    fun toStringF() : String {
-        return "${asF()}F"
-    }
+    fun toStringF() = "${asF()}F"
 
-    operator fun minus(other: Temperature): Temperature {
+    operator fun minus(other: Temperature) = (this.asF() - other.asF()).toF()
 
-        //can use F or C it doesn't matter
-        return (this.asF() - other.asF()).toF()
-    }
+    operator fun compareTo(other: Temperature) = (asF() - other.asF()).sign.toInt()
 
-    operator fun compareTo(other: Temperature): Int {
-        return (asF() - other.asF()).sign.toInt()
-    }
+    operator fun plus(other: Temperature) = (this.asF() + other.asF()).toF()
 }
 
-fun fromSymbol(symbol: String): Temperature.Unit {
-    return when (symbol) {
+fun String.toTemperatureUnit() = when (this) {
         "C" -> Temperature.Unit.CELSIUS
         "F" -> Temperature.Unit.FAHRENHEIT
-        else -> { throw IllegalArgumentException("Unrecognized temperature symbol '$symbol'") }
+        else -> { throw IllegalArgumentException("Unrecognized temperature symbol '$this'") }
     }
-}
 
-fun Double.toF(): Temperature {
-    return Temperature(this, Temperature.Unit.FAHRENHEIT)
-}
+fun Double.toF() = Temperature(this, Temperature.Unit.FAHRENHEIT)
 
-fun Double.toC(): Temperature {
-    return Temperature(this, Temperature.Unit.CELSIUS)
-}
+fun Double.toC() = Temperature(this, Temperature.Unit.CELSIUS)
 
 @Singleton
 class TemperatureSerializer : JsonSerializer<Temperature>() {
-    override fun serialize(value: Temperature, gen: JsonGenerator, serializers: SerializerProvider) {
 
-        //Serialize 68.5 degrees Fahrenheit as "68.5F"
+    //Serialize 68.5 degrees Fahrenheit as "68.5F"
+    override fun serialize(value: Temperature, gen: JsonGenerator, serializers: SerializerProvider) =
         gen.writeString("${value.value}${value.unit.symbol}")
-    }
 }
 
 @Singleton
 class TemperatureDeserializer : JsonDeserializer<Temperature>() {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Temperature {
         val tempAsString = p.valueAsString
-        val unit = fromSymbol(tempAsString.takeLast(1))
+        val unit = tempAsString.takeLast(1).toTemperatureUnit()
         val temp = tempAsString.take(tempAsString.lastIndex).toDouble()
         return Temperature(temp, unit)
     }

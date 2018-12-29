@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.*
 import fermbot.Temperature
+import fermbot.Thermometer
+import fermbot.cascadeOptionals
 import fermbot.hardwarebridge.ThermoHydrometerReader
 import fermbot.hardwarebridge.ThermometerReader
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
@@ -87,9 +89,15 @@ class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer,
     private val logger = LoggerFactory.getLogger(TemperatureControlTask::class.java)
 
     override fun run() {
-        val setpoint = setpointDeterminer.getSetpoint(hydrometerReader.readTilt())
+        val thermohydrometer = hydrometerReader.readTilt()
+        val setpoint = setpointDeterminer.getSetpoint(thermohydrometer)
         val currentHeatingMode = temperatureActuator.getCurrentHeatingMode()
-        val desiredHeatingMode = hysteresisProfile.determineHeatingMode(setpoint.tempSetpoint, thermometerReader.getDevices())
+        val thermometer = thermometerReader.getDevices()
+
+        // if the tilt and ds18b20 are both present, use the ds18b20, otherwise use the tilt
+        val bestThermometer = cascadeOptionals(thermohydrometer, thermometer)
+
+        val desiredHeatingMode = hysteresisProfile.determineHeatingMode(setpoint.tempSetpoint, bestThermometer)
         logger.info("Current Setpoint: $setpoint. Current Heating Mode: $currentHeatingMode. Changing Heating Mode to: $desiredHeatingMode.")
         temperatureActuator.setHeatingMode(desiredHeatingMode)
     }

@@ -46,4 +46,9 @@ class TemperatureWindowSpec {
         val str = "1.5B"
         expectThrows<IllegalArgumentException> { fromString(str) }
     }
+
+    @Test
+    fun `cannot create negative window`() {
+        expectThrows<IllegalArgumentException> { TemperatureWindow(-1.7, Temperature.Unit.FAHRENHEIT) }
+    }
 }

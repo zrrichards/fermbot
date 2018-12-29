@@ -21,7 +21,7 @@ import javax.inject.Singleton
  * @version 12/11/19
  */
 @Singleton
-@Requires(env=["Raspberry-Pi"])
+@Requires(env=["Raspberry-Pi"], property="fermbot.ds18b20.enabled", value="true")
 class RaspberryPiDS18B20Manager @Inject constructor(private val corrector: TemperatureCorrector) : ThermometerReader {
 
     private val w1master = W1Master()

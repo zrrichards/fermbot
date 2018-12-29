@@ -2,41 +2,33 @@ package fermbot.profile
 
 import fermbot.Temperature
 import fermbot.Thermometer
-import fermbot.fromSymbol
 import fermbot.monitor.HeatingMode
-import io.micronaut.context.annotation.Factory
+import fermbot.toTemperatureUnit
 import io.micronaut.context.annotation.Property
+import io.micronaut.core.convert.ConversionContext
+import io.micronaut.core.convert.TypeConverter
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.Comparator
 import kotlin.math.sign
 
-/**
- * Temperature values are injected as strings (can't figure out how to do it via Micronaut and automatically parsing the value
- */
 @Singleton
-class HysteresisProfile @Inject constructor(@Property(name="fermbot.hysteresis.lower") lowerThresholdString: String, @Property(name="fermbot.hysteresis.upper") upperThresholdString: String) {
-
-    private val lowerThreshold: TemperatureWindow = fromString(lowerThresholdString)
-    private val upperThreshold: TemperatureWindow = fromString(upperThresholdString)
+class HysteresisProfile @Inject constructor(@Property(name="fermbot.hysteresis.lower") val lowerThreshold: TemperatureWindow, @Property(name="fermbot.hysteresis.upper") val upperThreshold: TemperatureWindow) {
 
     private val logger = LoggerFactory.getLogger(HysteresisProfile::class.java)
 
     init {
-        require(lowerThreshold > ZERO) {
-            "Lower temperature threshold must be positive. Was $lowerThreshold"
-        }
-        require(upperThreshold > ZERO) {
-            "Upper temperature threshold must be positive. Was $upperThreshold"
-        }
-
         logger.info("Initializing Hysteresis profile: lowerThreshold=$lowerThreshold upperThreshold=$upperThreshold")
     }
 
     fun determineHeatingMode(setpoint: Temperature, thermometer: Optional<Thermometer>): HeatingMode {
-        require(thermometer.isPresent)
+
+        //If we don't have a thermometer, there's nothing we can do to measure the temperature so don't do anything for temp control
+        if (!thermometer.isPresent) {
+            logger.debug("No thermometer present, heating mode is Off regardless of setpoint")
+            return HeatingMode.OFF
+        }
 
         val currentTemp = thermometer.get().currentTemp
         if (currentTemp > setpoint + upperThreshold) {
@@ -49,11 +41,13 @@ class HysteresisProfile @Inject constructor(@Property(name="fermbot.hysteresis.l
     }
 }
 
-private operator fun Temperature.minus(window: TemperatureWindow): Temperature {
+fun symmetricHysteresisProfile(window: TemperatureWindow) = HysteresisProfile(window, window)
+
+operator fun Temperature.minus(window: TemperatureWindow): Temperature {
     return Temperature(this.value - window.get(this.unit), this.unit)
 }
 
-private operator fun Temperature.plus(window: TemperatureWindow): Temperature {
+operator fun Temperature.plus(window: TemperatureWindow): Temperature {
     return Temperature(this.value + window.get(this.unit), this.unit)
 }
 
@@ -63,6 +57,11 @@ val ZERO = TemperatureWindow(0.0, Temperature.Unit.CELSIUS)
  * This class represents a temperature window (i.e. a change in temperature). 1 degree F is equal to 1.8 degrees C
  */
 class TemperatureWindow(val value: Double, val unit: Temperature.Unit): Comparable<TemperatureWindow> {
+
+    init {
+        require (value >= 0) { "Cannot create a negative temperature window of $value$unit" }
+    }
+
     fun get(desiredUnit: Temperature.Unit): Double {
         return when {
             this.unit == desiredUnit -> value
@@ -73,7 +72,7 @@ class TemperatureWindow(val value: Double, val unit: Temperature.Unit): Comparab
     }
 
     /**
-     * Prints out the value in the form of "1.0C" or "-1.6F"
+     * Prints out the value in the form of "1.0C"
      */
     override fun toString(): String {
         return "$value${unit.symbol}"
@@ -106,8 +105,21 @@ class TemperatureWindow(val value: Double, val unit: Temperature.Unit): Comparab
  * Parse a window in the format of "1.5C" or "-1.64F" to a TemperatureWindow
  */
 fun fromString(string: String) : TemperatureWindow {
-    require(string.last().toString() in listOf("F", "C"))
-    val unit = fromSymbol(string.takeLast(1))
+
+    if (string == "0") { //special case because a zero temperature window is the same regardless of the unit
+        return ZERO
+    }
+
+    val unit = string.takeLast(1).toTemperatureUnit()
     val temp = string.take(string.lastIndex).toDouble()
     return TemperatureWindow(temp, unit)
+}
+
+@Singleton
+class TemperatureWindowTypeConverter : TypeConverter<String, TemperatureWindow> {
+    override fun convert(source: String, targetType: Class<TemperatureWindow>, context: ConversionContext): Optional<TemperatureWindow> {
+
+        //doc says to return empty if value cannot be parsed but let any exception bubble up for now
+        return Optional.of(fromString(source))
+    }
 }

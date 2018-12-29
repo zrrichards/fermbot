@@ -9,4 +9,4 @@ import java.time.Instant
  * Each sensor has a unique ID defined at manufacture
  * This class represents a snapshot of the temperature at an instant, it is not updated.
  */
-data class DS18B20(override val id: String, override val currentTemp: Temperature, override val timestamp: Instant) : Thermometer
+data class DS18B20(override val id: String, override val currentTemp: Temperature, override val timestamp: Instant = Instant.now()) : Thermometer
