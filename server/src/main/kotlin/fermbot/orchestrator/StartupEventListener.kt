@@ -14,10 +14,12 @@ package fermbot.orchestrator
  */
 
 import fermbot.Application
+import fermbot.DeviceInfo
 import io.micronaut.context.annotation.Value
 import io.micronaut.discovery.event.ServiceStartedEvent
 import io.micronaut.runtime.event.annotation.EventListener
 import org.slf4j.LoggerFactory
+import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
@@ -26,11 +28,11 @@ import javax.inject.Singleton
  * @version $ 12/9/19
  */
 @Singleton
-class StartupEventListener {
+class StartupEventListener @Inject constructor(deviceInfo: DeviceInfo) {
 
-    private val logger = LoggerFactory.getLogger(Application::class.java)
+    private val logger = LoggerFactory.getLogger(StartupEventListener::class.java)
 
-    private var deviceName = "TODO save this to a bean"
+    private var deviceName = deviceInfo.deviceName
 
     @Value("\${fermbot.banner-enabled:true}") //todo doc
     private var bannerEnabled = true

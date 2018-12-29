@@ -1,6 +1,8 @@
 package fermbot
 
+import fermbot.monitor.FermentationMonitorTask
 import fermbot.profile.FermentationProfileController
+import fermbot.profile.Persister
 import fermbot.profile.TemperatureSetpoint
 import io.micronaut.context.annotation.Context
 import io.micronaut.http.annotation.Body
@@ -18,7 +20,7 @@ import javax.inject.Inject
  */
 @Context
 @Controller("/")
-class StateController @Inject constructor (private val fermentationProfileController: FermentationProfileController){
+class StateController @Inject constructor (private val fermentationProfileController: FermentationProfileController, private val profilePersister: Persister<List<TemperatureSetpoint>>, private val fermentationMonitorTask: FermentationMonitorTask){
 
     private val logger = LoggerFactory.getLogger(StateController::class.java)
 
@@ -27,8 +29,11 @@ class StateController @Inject constructor (private val fermentationProfileContro
     fun getCurrentState() = currentState
 
     init {
-        //Load previous data
-        currentState = State.PENDING_PROFILE //(or READY if prev data is present)
+        if (fermentationProfileController.isProfileSet()) {
+            currentState = State.READY
+        } else {
+            currentState = State.PENDING_PROFILE
+        }
         logger.info("Initializing state controller. Current state: $currentState")
     }
 

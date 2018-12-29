@@ -8,6 +8,7 @@ import fermbot.cascadeOptionals
 import fermbot.hardwarebridge.ThermoHydrometerReader
 import fermbot.hardwarebridge.ThermometerReader
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
+import fermbot.monitor.FermentationMonitorTask
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.scheduling.TaskExecutors
@@ -27,7 +28,10 @@ import javax.inject.Singleton
 @Controller
 class FermentationProfileController @Inject constructor(private val profilePersister: Persister<List<TemperatureSetpoint>>, private val temperatureActuator: TemperatureActuator, private val hydrometerReader: ThermoHydrometerReader, private val hysteresisProfile: HysteresisProfile,
                                                         private val thermometerReader: ThermometerReader,
-                                                        @param:Named(TaskExecutors.SCHEDULED) private val taskScheduler: TaskScheduler) {
+                                                        @param:Named(TaskExecutors.SCHEDULED) private val taskScheduler: TaskScheduler,
+                                                        private val fermentationMonitorTask: FermentationMonitorTask) {
+
+    private val BREWFATHER_UPLOAD_PERIOD = Duration.ofSeconds(15 * 60 + 10) //15 minutes + a few seconds as a buffer
 
     private val currentProfile: MutableList<TemperatureSetpoint> = if (profilePersister.hasPersistedData()) {
         profilePersister.read().toMutableList()
@@ -40,7 +44,8 @@ class FermentationProfileController @Inject constructor(private val profilePersi
     private lateinit var setpointDeterminer: SetpointDeterminer
 
     init {
-        logger.info("CurrentProfile: {}", currentProfile)
+        logger.info("CurrentProfile: {}", if (currentProfile.isEmpty()) { "[empty]" } else { currentProfile })
+        fermentationMonitorTask.run() //initial post to brewfather so device is visible
     }
 
     @Get("/profile")
@@ -68,8 +73,9 @@ class FermentationProfileController @Inject constructor(private val profilePersi
         val temperatureControlTask = TemperatureControlTask(
                 setpointDeterminer, hydrometerReader, hysteresisProfile, thermometerReader, temperatureActuator
         )
-        temperatureControlTask.run() //schedule at fixed rate probably won't do this so we have to start it manually
+        temperatureControlTask.run()
         taskScheduler.scheduleAtFixedRate(Duration.ZERO, Duration.ofMinutes(10), temperatureControlTask)
+        taskScheduler.scheduleAtFixedRate(BREWFATHER_UPLOAD_PERIOD, BREWFATHER_UPLOAD_PERIOD, fermentationMonitorTask)
     }
 
     fun clearProfile() {
@@ -77,6 +83,10 @@ class FermentationProfileController @Inject constructor(private val profilePersi
     }
 
     fun getCurrentHeatingMode() = temperatureActuator.getCurrentHeatingMode()//FIXME I don't really like reaching through the rest controller
+
+    fun isProfileSet(): Boolean {
+        return currentProfile.isNotEmpty()
+    }
 }
 
 class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer, private val hydrometerReader: ThermoHydrometerReader, private val hysteresisProfile: HysteresisProfile, private val thermometerReader: ThermometerReader, private val temperatureActuator: TemperatureActuator) : Runnable {

@@ -30,16 +30,11 @@ import javax.inject.Singleton
  * @version $ 12/5/19
  */
 @Singleton
-class FermentationMonitor @Inject constructor(private val brewfather: Optional<Brewfather>, private val thermoHydrometerReader: ThermoHydrometerReader, private val thermometerReader: ThermometerReader) {
+class FermentationMonitorTask @Inject constructor(private val brewfather: Optional<Brewfather>, private val thermoHydrometerReader: ThermoHydrometerReader, private val thermometerReader: ThermometerReader) : Runnable {
 
-    @Inject private lateinit var systemStatistics: SystemStatistics
+    private val logger = LoggerFactory.getLogger(FermentationMonitorTask::class.java)
 
-    private val logger = LoggerFactory.getLogger(FermentationMonitor::class.java)
-
-    @Scheduled(fixedRate = "905s", initialDelay = "10s") //905s = 15 min + 5 seconds (Brewfather max logging time is every 15 min)
-    fun execute() {
-
-        //todo read temp from ds18b20 if enabled
+    override fun run() {
 
         val tiltOptional = thermoHydrometerReader.readTilt()
         val thermometerOptional = thermometerReader.getDevices()
@@ -69,11 +64,18 @@ class FermentationMonitor @Inject constructor(private val brewfather: Optional<B
         logger.info(output.toString())
 
         //if brewfather is enabled and we have one of either the temp or SG to log
-        if (brewfather.isPresent && (currentTemp != null || currentSg != null)) {
-            val tempOptional = Optional.ofNullable(currentTemp)
-            val sgOptional = Optional.ofNullable(currentSg)
+        if (brewfather.isPresent) {
+            if(currentTemp != null || currentSg != null) {
+                val tempOptional = Optional.ofNullable(currentTemp)
+                val sgOptional = Optional.ofNullable(currentSg)
 
-            brewfather.get().updateBatchDetails(tempOptional, sgOptional)
+                brewfather.get().updateBatchDetails(tempOptional, sgOptional)
+            } else {
+                logger.info("Brewfather configured but current temp and specific gravity cannot be read. Nothing to upload.")
+            }
+        } else {
+            logger.debug("Brewfather not enabled, nothing to upload")
         }
+
     }
 }

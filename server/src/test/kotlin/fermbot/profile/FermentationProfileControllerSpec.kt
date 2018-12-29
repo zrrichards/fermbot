@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fermbot.StateController
 import fermbot.hardwarebridge.tempcontrol.HardwareBackedTemperatureActuator
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
+import fermbot.monitor.FermentationMonitorTask
 import fermbot.monitor.HeatingMode
 import fermbot.toF
+import io.kotlintest.matchers.exactly
 import io.micronaut.context.annotation.Replaces
 import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpRequest.GET
@@ -18,6 +20,7 @@ import io.micronaut.test.annotation.MicronautTest
 import io.micronaut.test.annotation.MockBean
 import io.mockk.mockk
 import io.mockk.spyk
+import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -174,10 +177,13 @@ class FermentationProfileControllerSpec {
                 SpecificGravityBasedSetpoint(48.0.toF(), 1.023, "Primary")
         )
         val mockPersister = MockPersister(persistedProfile)
-
-        val profileController = FermentationProfileController(mockPersister, mockk(), mockk(), mockk(), mockk(), mockk())
+        val mockMonitor = mockk<FermentationMonitorTask>(relaxed=true)
+        val profileController = FermentationProfileController(mockPersister, mockk(), mockk(), mockk(), mockk(), mockk(), mockMonitor)
 
         expectThat(profileController.getProfile()).isEqualTo(persistedProfile)
+        verify(exactly = 1) {
+            mockMonitor.run()
+        }
     }
 
 }

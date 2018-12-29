@@ -6,7 +6,7 @@ import fermbot.brewfather.BrewfatherUploadResult
 import fermbot.hardwarebridge.*
 import fermbot.hardwarebridge.raspberrypi.RaspberryPiTiltReader
 import fermbot.hardwarebridge.simulation.SimulationDs18b20Manager
-import fermbot.monitor.FermentationMonitor
+import fermbot.monitor.FermentationMonitorTask
 import fermbot.profile.toOptional
 import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Replaces
@@ -31,7 +31,7 @@ import javax.inject.Singleton
 class FermentationMonitorTiltEnabledSpec {
 
     @Inject
-    private lateinit var monitor: FermentationMonitor
+    private lateinit var monitor: FermentationMonitorTask
 
     @Inject
     private lateinit var brewfather: Brewfather
@@ -52,8 +52,8 @@ class FermentationMonitorTiltEnabledSpec {
         var specificGravity = Double.MIN_VALUE
 
         override fun updateBatchDetails(currentTemp: Optional<Temperature>, specificGravity: Optional<Double>): BrewfatherUploadResult {
-            this.currentTemp = currentTemp.get()
-            this.specificGravity = specificGravity.get()
+            currentTemp.ifPresent { this.currentTemp = it }
+            specificGravity.ifPresent { this.specificGravity = it }
             return BrewfatherUploadResult("success")
         }
     }
@@ -70,7 +70,7 @@ class FermentationMonitorTiltEnabledSpec {
 
     @Test
     fun `can take snapshot with tilt and DS18B20`() {
-        monitor.execute()
+        monitor.run()
         with (brewfather as BrewfatherStub) {
             expectThat(currentTemp).isEqualTo(95.21.toF())
             expectThat(specificGravity).isEqualTo(1.052)
