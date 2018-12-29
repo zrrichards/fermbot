@@ -5,16 +5,19 @@ micronaut:
     name: fermbot
 
 fermbot:
-  suffix: #Enter your device name here. These must be unique per fermbot instance
+  suffix: test #Enter your device name here. These must be unique per fermbot instance
   pytilt-script-path: #Enter the path to the python directory of this repository. Do not include the trailing slash
   ds18b20:
     enabled: true
   heater:
     enabled:
-    pin-name: #Enter the pin where the heater relay is connected todo specify valid values
+    pin-name: #Enter the pin where the heater relay is connected todo specify potential valid values
+  hysteresis:
+    lower: 1
+    upper: 1
   cooler:
     enabled:
-    pin-name: #Enter the pin where the cooler relay is connected todo specify valid values
+    pin-name: #Enter the pin where the cooler relay is connected todo specify potential valid values
   tilt:
     enabled: true
   #add a b c for ds18B20 error correction

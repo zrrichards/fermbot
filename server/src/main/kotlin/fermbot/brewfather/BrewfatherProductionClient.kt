@@ -16,12 +16,15 @@ package fermbot.brewfather
 import com.fasterxml.jackson.databind.ObjectMapper
 import fermbot.*
 import fermbot.orchestrator.SystemStatistics
+import io.micronaut.context.annotation.Property
+import io.micronaut.context.annotation.Requires
 import io.micronaut.http.HttpRequest.POST
 import io.micronaut.http.MediaType
 import io.micronaut.http.client.DefaultHttpClient
 import org.slf4j.LoggerFactory
 import java.net.URL
 import java.time.Instant
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,8 +34,10 @@ import javax.inject.Singleton
  * @version $ 12/5/19
  */
 @Singleton
-class BrewfatherProductionClient @Inject constructor(configuration: Configuration, private val brewfatherPayloadFactory: BrewfatherPayloadFactory) : Brewfather {
-    private val BREWFATHER_URL = "http://log.brewfather.net/stream?id=${configuration.brewfatherCustomStreamId}"
+@Requires(property="brewfather.custom-stream-id")
+class BrewfatherProductionClient @Inject constructor(@Property(name="brewfather.custom-stream-id") private val brewfatherCustomStreamId: String, private val brewfatherPayloadFactory: BrewfatherPayloadFactory) : Brewfather {
+
+    private val BREWFATHER_URL = "http://log.brewfather.net/stream?id=$brewfatherCustomStreamId"
 
     val client = DefaultHttpClient(URL(BREWFATHER_URL))
 
@@ -43,7 +48,10 @@ class BrewfatherProductionClient @Inject constructor(configuration: Configuratio
 
     @Inject private lateinit var systemStatistics: SystemStatistics
 
-    override fun updateBatchDetails(currentTemp: Temperature, specificGravity: Double): BrewfatherUploadResult {
+    override fun updateBatchDetails(currentTemp: Optional<Temperature>, specificGravity: Optional<Double>): BrewfatherUploadResult {
+        require(currentTemp.isPresent || specificGravity.isPresent) {
+            "CurrentTemp.isPresent? ${currentTemp.isPresent}, SpecificGravity.isPresent? ${specificGravity.isPresent}"
+        }
         val payload = brewfatherPayloadFactory.createBrewfatherPayload(currentTemp, specificGravity)
         var attempt = 0
         var lastException: Exception? = null

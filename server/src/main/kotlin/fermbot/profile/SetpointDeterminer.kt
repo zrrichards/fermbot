@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import fermbot.Hydrometer
 import org.slf4j.LoggerFactory
 import java.time.Instant
+import java.util.*
 
 /**
  *
@@ -19,17 +20,25 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
 
     private val fermentationStagesStart = mutableMapOf<Int, Instant>()
 
-    fun getSetpoint(hydrometer: Hydrometer): TemperatureSetpoint { //change to Hydrometer? in case user doesn't have one configured
+    fun <T: Hydrometer> getSetpoint(hydrometer: Optional<T>): TemperatureSetpoint {
         if (isCurrentStageFulfilled(hydrometer)) {
             currentSetpointIndex++
         }
         return currentStage
     }
 
-    private fun isCurrentStageFulfilled(hydrometer: Hydrometer): Boolean {
+    private fun hasGravityBasedSetpoint(setpoints: List<TemperatureSetpoint>): Boolean {
+        return setpoints.any { it is SpecificGravityBasedSetpoint }
+    }
+
+    private fun <T: Hydrometer> isCurrentStageFulfilled(hydrometer: Optional<T>): Boolean {
         return when (currentStage) {
             is SpecificGravityBasedSetpoint -> {
-               hydrometer.specificGravity <= (currentStage as SpecificGravityBasedSetpoint).untilSg
+               if (hydrometer.isPresent) {
+                   hydrometer.get().specificGravity <= (currentStage as SpecificGravityBasedSetpoint).untilSg
+               } else {
+                   throw IllegalStateException("Specific gravity based setpoint in use but no hydrometer found")
+               }
             }
             is TimeBasedSetpoint -> {
                false

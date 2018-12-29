@@ -7,6 +7,7 @@ import strikt.assertions.isEqualTo
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.*
 
 /**
  *
@@ -30,14 +31,14 @@ class SetpointDeterminerSpec {
     @Test
     fun `initial setpoint is not changed if gravity is too high`() {
         val profileController = SetpointDeterminer(gravityBasedLagerProfile)
-        val setpoint = profileController.getSetpoint(FixedHydrometer(1.040))
+        val setpoint = profileController.getSetpoint(FixedHydrometer(1.040).toOptional())
         expectThat(setpoint).isEqualTo(gravityBasedLagerProfile[0])
     }
 
     @Test
     fun `initial setpoint is changed if gravity is equal to what is defined in the profile`() {
         val profileController = SetpointDeterminer(gravityBasedLagerProfile)
-        val setpoint = profileController.getSetpoint(FixedHydrometer(1.023))
+        val setpoint = profileController.getSetpoint(FixedHydrometer(1.023).toOptional())
         expectThat(setpoint).isEqualTo(gravityBasedLagerProfile[1])
         expectThat(profileController.getCurrentSetpointIndex()).isEqualTo(1)
     }
@@ -45,7 +46,7 @@ class SetpointDeterminerSpec {
     @Test
     fun `initial setpoint is changed if gravity is less than what is defined in the profile`() {
         val profileController = SetpointDeterminer(gravityBasedLagerProfile)
-        val setpoint = profileController.getSetpoint(FixedHydrometer(1.020))
+        val setpoint = profileController.getSetpoint(FixedHydrometer(1.020).toOptional())
         expectThat(setpoint).isEqualTo(gravityBasedLagerProfile[1])
         expectThat(profileController.getCurrentSetpointIndex()).isEqualTo(1)
     }
@@ -57,7 +58,8 @@ class SetpointDeterminerSpec {
                 TimeBasedSetpoint(48.0.toF(), Duration.ofDays(2), "", false)
         )
         val profileController = SetpointDeterminer(setpoints,0, Instant.now().minus(1, ChronoUnit.DAYS))
-        expectThat(profileController.getSetpoint(NullHydrometer)).isEqualTo(setpoints[0])
+        expectThat(profileController.getSetpoint(NullHydrometer.toOptional())).isEqualTo(setpoints[0])
     }
 }
 
+fun <T : Any> T?.toOptional(): Optional<T> = Optional.ofNullable(this)

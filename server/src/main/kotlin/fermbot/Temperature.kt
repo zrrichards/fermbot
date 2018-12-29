@@ -7,16 +7,21 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 import javax.inject.Singleton
+import kotlin.math.sign
 
 /**
  *
  * @author Zachary Richards
  * @version 12/11/19
  */
-data class Temperature(private val value: Double, val unit: Unit) {
+data class Temperature(val value: Double, val unit: Unit) {
     enum class Unit(val converter: (Double) -> Double, val symbol: String) {
         CELSIUS({ a -> a * 1.8 + 32}, "C"),
         FAHRENHEIT({ a -> (a - 32) / 1.8}, "F");
+
+        override fun toString(): String {
+            return symbol
+        }
     }
 
     fun get(unit: Unit): Double {
@@ -42,6 +47,20 @@ data class Temperature(private val value: Double, val unit: Unit) {
     fun asC(): Double {
         return get(Unit.CELSIUS)
     }
+
+    fun toStringF() : String {
+        return "${asF()}F"
+    }
+
+    operator fun minus(other: Temperature): Temperature {
+
+        //can use F or C it doesn't matter
+        return (this.asF() - other.asF()).toF()
+    }
+
+    operator fun compareTo(other: Temperature): Int {
+        return (asF() - other.asF()).sign.toInt()
+    }
 }
 
 fun fromSymbol(symbol: String): Temperature.Unit {
@@ -64,8 +83,8 @@ fun Double.toC(): Temperature {
 class TemperatureSerializer : JsonSerializer<Temperature>() {
     override fun serialize(value: Temperature, gen: JsonGenerator, serializers: SerializerProvider) {
 
-        //Serialize 68 degrees Fahrenheit as "68F"
-        gen.writeString("${value.get(value.unit)}${value.unit.symbol}")
+        //Serialize 68.5 degrees Fahrenheit as "68.5F"
+        gen.writeString("${value.value}${value.unit.symbol}")
     }
 }
 

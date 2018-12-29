@@ -14,15 +14,10 @@ package fermbot.orchestrator
  */
 
 import fermbot.Application
-import fermbot.Configuration
-import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Value
-import io.micronaut.context.event.ShutdownEvent
 import io.micronaut.discovery.event.ServiceStartedEvent
 import io.micronaut.runtime.event.annotation.EventListener
-import io.micronaut.runtime.server.event.ServerShutdownEvent
 import org.slf4j.LoggerFactory
-import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
@@ -35,8 +30,7 @@ class StartupEventListener {
 
     private val logger = LoggerFactory.getLogger(Application::class.java)
 
-    @Inject
-    private lateinit var configuration: Configuration
+    private var deviceName = "TODO save this to a bean"
 
     @Value("\${fermbot.banner-enabled:true}") //todo doc
     private var bannerEnabled = true
@@ -56,7 +50,7 @@ class StartupEventListener {
                                           
 """)
         }
-        logger.info("Started FermBot v0.1. Device name: " + configuration.deviceName)
+        logger.info("Started FermBot v0.1. Device name: $deviceName")
         logger.info("""
 Thank you for using the FermBot. This project is licenced under the GPLv3. 
 You may use this software however you wish (even for commercial purposes). However, if you modify it, you

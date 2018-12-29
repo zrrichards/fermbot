@@ -1,11 +1,10 @@
 package fermbot.profile
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fermbot.hardwarebridge.tempcontrol.*
+import fermbot.hardwarebridge.tempcontrol.HardwareBackedTemperatureActuator
+import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.HeatingMode
 import fermbot.toF
-import io.micronaut.context.annotation.Bean
-import io.micronaut.context.annotation.Factory
 import io.micronaut.context.annotation.Replaces
 import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpRequest.GET
@@ -18,14 +17,12 @@ import io.micronaut.test.annotation.MicronautTest
 import io.micronaut.test.annotation.MockBean
 import io.mockk.mockk
 import io.mockk.spyk
-import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.Duration
 import javax.inject.Inject
-import javax.inject.Named
 import javax.inject.Singleton
 
 /**
@@ -175,7 +172,7 @@ class FermentationProfileRestControllerSpec {
         )
         val mockPersister = MockPersister(persistedProfile)
 
-        val profileController = FermentationProfileRestController(mockPersister, mockk())
+        val profileController = FermentationProfileRestController(mockPersister, mockk(), mockk(), mockk(), mockk(), mockk())
 
         expectThat(profileController.getProfile()).isEqualTo(persistedProfile)
     }

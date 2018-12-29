@@ -3,19 +3,18 @@ package fermbot
 import fermbot.brewfather.Brewfather
 import fermbot.brewfather.BrewfatherProductionClient
 import fermbot.brewfather.BrewfatherUploadResult
-import fermbot.hardwarebridge.ThermoHydrometer
-import fermbot.hardwarebridge.ThermoHydrometerReader
-import fermbot.hardwarebridge.Tilt
-import fermbot.hardwarebridge.TiltColors
+import fermbot.hardwarebridge.*
 import fermbot.hardwarebridge.raspberrypi.RaspberryPiTiltReader
+import fermbot.hardwarebridge.simulation.SimulationDs18b20Manager
 import fermbot.monitor.FermentationMonitor
+import fermbot.profile.toOptional
 import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Replaces
 import io.micronaut.test.annotation.MicronautTest
-import io.micronaut.test.annotation.MockBean
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.time.Instant
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -52,18 +51,28 @@ class FermentationMonitorTiltEnabledSpec {
         var currentTemp: Temperature = Double.MIN_VALUE.toF()
         var specificGravity = Double.MIN_VALUE
 
-        override fun updateBatchDetails(currentTemp: Temperature, specificGravity: Double): BrewfatherUploadResult {
-            this.currentTemp = currentTemp
-            this.specificGravity = specificGravity
+        override fun updateBatchDetails(currentTemp: Optional<Temperature>, specificGravity: Optional<Double>): BrewfatherUploadResult {
+            this.currentTemp = currentTemp.get()
+            this.specificGravity = specificGravity.get()
             return BrewfatherUploadResult("success")
         }
     }
 
+    @Replaces(SimulationDs18b20Manager::class)
+    @Singleton
+    class DS18B20Stub : ThermometerReader {
+        override fun getDevices(): Optional<Thermometer> {
+            return DS18B20(id = "foo-id",
+                    currentTemp = 95.21.toF(),
+                    timestamp = Instant.now()).toOptional()
+        }
+    }
+
     @Test
-    fun `can take snapshot with tilt`() {
+    fun `can take snapshot with tilt and DS18B20`() {
         monitor.execute()
         with (brewfather as BrewfatherStub) {
-            expectThat(currentTemp).isEqualTo(65.5.toF())
+            expectThat(currentTemp).isEqualTo(95.21.toF())
             expectThat(specificGravity).isEqualTo(1.052)
         }
     }

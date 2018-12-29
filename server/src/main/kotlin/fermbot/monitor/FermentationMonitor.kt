@@ -13,11 +13,14 @@ package fermbot.monitor
  *  GNU General Public License for more details.
  */
 
-import fermbot.Configuration
+import fermbot.Temperature
 import fermbot.brewfather.Brewfather
 import fermbot.hardwarebridge.ThermoHydrometerReader
+import fermbot.hardwarebridge.ThermometerReader
 import fermbot.orchestrator.SystemStatistics
 import io.micronaut.scheduling.annotation.Scheduled
+import org.slf4j.LoggerFactory
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,13 +30,11 @@ import javax.inject.Singleton
  * @version $ 12/5/19
  */
 @Singleton
-class FermentationMonitor @Inject constructor(private val configuration: Configuration) {
-    @Inject private lateinit var brewfather: Brewfather
-
-    @Inject private lateinit var thermoHydrometerReader: ThermoHydrometerReader
+class FermentationMonitor @Inject constructor(private val brewfather: Optional<Brewfather>, private val thermoHydrometerReader: ThermoHydrometerReader, private val thermometerReader: ThermometerReader) {
 
     @Inject private lateinit var systemStatistics: SystemStatistics
 
+    private val logger = LoggerFactory.getLogger(FermentationMonitor::class.java)
 
     @Scheduled(fixedRate = "905s", initialDelay = "10s") //905s = 15 min + 5 seconds (Brewfather max logging time is every 15 min)
     fun execute() {
@@ -41,10 +42,38 @@ class FermentationMonitor @Inject constructor(private val configuration: Configu
         //todo read temp from ds18b20 if enabled
 
         val tiltOptional = thermoHydrometerReader.readTilt()
+        val thermometerOptional = thermometerReader.getDevices()
+
+        val output = StringBuilder()
+        var currentTemp : Temperature? = null
+        var currentSg : Double? = null
 
         tiltOptional.ifPresent {
-            systemStatistics.latestTiltReading = it
-            brewfather.updateBatchDetails(it.currentTemp, it.specificGravity)
+            val toStringF = it.currentTemp.toStringF()
+            output.append("Tilt Reading[temp=$toStringF, sg=${it.specificGravity}] ")
+            currentTemp = it.currentTemp
+            currentSg = it.specificGravity
+        }
+
+        thermometerOptional.ifPresent {
+           val toStringF = it.currentTemp.toStringF()
+            output.append("Thermometer Reading[$toStringF] ")
+            currentTemp = it.currentTemp
+        }
+
+        if (tiltOptional.isPresent && thermometerOptional.isPresent) {
+            val tiltHigh = tiltOptional.get().currentTemp - thermometerOptional.get().currentTemp
+            output.append("Tilt is reading[${tiltHigh.toStringF()} higher than thermometer]")
+        }
+
+        logger.info(output.toString())
+
+        //if brewfather is enabled and we have one of either the temp or SG to log
+        if (brewfather.isPresent && (currentTemp != null || currentSg != null)) {
+            val tempOptional = Optional.ofNullable(currentTemp)
+            val sgOptional = Optional.ofNullable(currentSg)
+
+            brewfather.get().updateBatchDetails(tempOptional, sgOptional)
         }
     }
 }

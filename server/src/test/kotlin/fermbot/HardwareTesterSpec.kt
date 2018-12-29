@@ -2,14 +2,12 @@ package fermbot
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fermbot.hardwarebridge.DS18B20
-import fermbot.hardwarebridge.DS18B20Manager
-import fermbot.hardwarebridge.raspberrypi.RaspberryPiDS18B20Manager
+import fermbot.hardwarebridge.ThermometerReader
 import fermbot.hardwarebridge.simulation.SimulationDs18b20Manager
 import fermbot.hardwarebridge.tempcontrol.HardwareBackedTemperatureActuator
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.HeatingMode
 import fermbot.orchestrator.HardwareTester
-import fermbot.orchestrator.HeatingTestPayload
 import fermbot.profile.TemperatureControllerTestPayload
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpStatus
@@ -25,6 +23,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.Duration
 import java.time.Instant
+import java.util.*
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -34,7 +33,7 @@ import kotlin.random.Random
  * @version 12/22/19
  */
 @MicronautTest
-class HardwareTesterSpec {
+open class HardwareTesterSpec {
     @Inject
     lateinit var server: EmbeddedServer
 
@@ -51,7 +50,7 @@ class HardwareTesterSpec {
     @Inject
     private lateinit var objectMapper: ObjectMapper
 
-    class MockTemperatureActuator : TemperatureActuator {
+    open class MockTemperatureActuator : TemperatureActuator {
         private var currentHeatingMode = HeatingMode.OFF
 
         override fun setHeatingMode(heatingMode: HeatingMode): HeatingMode {
@@ -65,19 +64,8 @@ class HardwareTesterSpec {
         }
     }
 
-    class MockDs18b20Manager : DS18B20Manager {
-        override fun getDevices(): DS18B20 {
-            return DS18B20("foo-id", (Random.nextInt(320, 1000) / 10.0).toF(), Instant.now())
-        }
-    }
-
-    @MockBean(SimulationDs18b20Manager::class)
-    fun createManager() : DS18B20Manager {
-        return MockDs18b20Manager()
-    }
-
     @MockBean(HardwareBackedTemperatureActuator::class)
-    fun createSpyActuator() : TemperatureActuator {
+    open fun createSpyActuator() : TemperatureActuator {
         return spyk(MockTemperatureActuator())
     }
 

@@ -14,7 +14,6 @@ package fermbot.hardwarebridge.raspberrypi
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fermbot.Configuration
 import fermbot.hardwarebridge.*
 import io.micronaut.context.annotation.Primary
 import io.micronaut.context.annotation.Requires
@@ -35,7 +34,7 @@ import kotlin.io.readText
  */
 @Singleton
 @Requires(env=["Raspberry-Pi"], property="tilt-enabled", value="true")
-class RaspberryPiTiltReader @Inject constructor(configuration: Configuration) : ThermoHydrometerReader {
+class RaspberryPiTiltReader : ThermoHydrometerReader {
 
     private val logger = LoggerFactory.getLogger(RaspberryPiTiltReader::class.java)
 

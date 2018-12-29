@@ -4,15 +4,21 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.*
 import fermbot.Temperature
+import fermbot.hardwarebridge.ThermoHydrometerReader
+import fermbot.hardwarebridge.ThermometerReader
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
-import fermbot.orchestrator.toPrettyString
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
+import io.micronaut.scheduling.TaskExecutors
+import io.micronaut.scheduling.TaskScheduler
 import org.slf4j.LoggerFactory
 import java.time.Duration
+import java.time.Instant
+import java.util.concurrent.ScheduledFuture
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 
 /**
@@ -21,7 +27,9 @@ import javax.inject.Singleton
  * @version 12/11/19
  */
 @Controller("/profile")
-class FermentationProfileRestController @Inject constructor(private val profilePersister: Persister<List<TemperatureSetpoint>>, private val temperatureActuator: TemperatureActuator) {
+class FermentationProfileRestController @Inject constructor(private val profilePersister: Persister<List<TemperatureSetpoint>>, private val temperatureActuator: TemperatureActuator, private val hydrometerReader: ThermoHydrometerReader, private val hysteresisProfile: HysteresisProfile,
+                                                            private val thermometerReader: ThermometerReader,
+                                                            @param:Named(TaskExecutors.SCHEDULED) private val taskScheduler: TaskScheduler) {
 
     private val currentProfile: MutableList<TemperatureSetpoint> = if (profilePersister.hasPersistedData()) {
         profilePersister.read().toMutableList()
@@ -31,11 +39,10 @@ class FermentationProfileRestController @Inject constructor(private val profileP
 
     private val logger = LoggerFactory.getLogger(FermentationProfileRestController::class.java)
 
-    private var setpointDeterminer: SetpointDeterminer
+    private lateinit var setpointDeterminer: SetpointDeterminer
 
     init {
         logger.info("CurrentProfile: {}", currentProfile)
-        setpointDeterminer = SetpointDeterminer(currentProfile) //TODO this is hardcoding that fermentation started now
     }
 
     @Get("/")
@@ -53,11 +60,39 @@ class FermentationProfileRestController @Inject constructor(private val profileP
         profilePersister.persist(currentProfile)
     }
 
+    /**
+     * Actually starts the fermentation controller and set point
+     */
+    @Post("/start")
+    fun  start() {
+        val fermentationStart = Instant.now()
+        setpointDeterminer = SetpointDeterminer(currentProfile, 0, fermentationStart) //TODO this is hardcoding that fermentation started now
+        logger.info("Starting fermentation profile")
+        val temperatureControlTask = TemperatureControlTask(
+                setpointDeterminer, hydrometerReader, hysteresisProfile, thermometerReader, temperatureActuator
+        )
+        temperatureControlTask.run() //schedule at fixed rate probably won't do this so we have to start it manually
+        taskScheduler.scheduleAtFixedRate(Duration.ZERO, Duration.ofMinutes(10), temperatureControlTask)
+    }
+
     fun clearProfile() {
         currentProfile.clear()
     }
 
     fun getCurrentHeatingMode() = temperatureActuator.getCurrentHeatingMode()//FIXME I don't really like reaching through the rest controller
+}
+
+class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer, private val hydrometerReader: ThermoHydrometerReader, private val hysteresisProfile: HysteresisProfile, private val thermometerReader: ThermometerReader, private val temperatureActuator: TemperatureActuator) : Runnable {
+
+    private val logger = LoggerFactory.getLogger(TemperatureControlTask::class.java)
+
+    override fun run() {
+        val setpoint = setpointDeterminer.getSetpoint(hydrometerReader.readTilt())
+        val currentHeatingMode = temperatureActuator.getCurrentHeatingMode()
+        val desiredHeatingMode = hysteresisProfile.determineHeatingMode(setpoint.tempSetpoint, thermometerReader.getDevices())
+        logger.info("Current Setpoint: $setpoint. Current Heating Mode: $currentHeatingMode. Changing Heating Mode to: $desiredHeatingMode.")
+        temperatureActuator.setHeatingMode(desiredHeatingMode)
+    }
 }
 
 @Singleton
