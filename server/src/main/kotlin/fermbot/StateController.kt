@@ -30,6 +30,9 @@ class StateController @Inject constructor (private val fermentationProfileContro
     @Get("/state")
     fun getCurrentState() = currentState
 
+    @Get("/temp/stats")
+    fun getTemperatureStatistics() = fermentationProfileController.statistics
+
     init {
         if (fermentationProfileController.isProfileSet()) {
             currentState = State.READY

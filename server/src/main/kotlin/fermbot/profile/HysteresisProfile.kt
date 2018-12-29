@@ -2,6 +2,7 @@ package fermbot.profile
 
 import fermbot.Temperature
 import fermbot.Thermometer
+import fermbot.hardwarebridge.tempcontrol.HeaterCoolerConfiguration
 import fermbot.monitor.HeatingMode
 import fermbot.toTemperatureUnit
 import io.micronaut.context.annotation.Property
@@ -14,7 +15,7 @@ import javax.inject.Singleton
 import kotlin.math.sign
 
 @Singleton
-class HysteresisProfile @Inject constructor(@Property(name="fermbot.hysteresis.lower") val lowerThreshold: TemperatureWindow, @Property(name="fermbot.hysteresis.upper") val upperThreshold: TemperatureWindow) {
+class HysteresisProfile @Inject constructor(@Property(name="fermbot.hysteresis.lower") val lowerThreshold: TemperatureWindow, @Property(name="fermbot.hysteresis.upper") val upperThreshold: TemperatureWindow, private val heatingCoolingConfiguration: HeaterCoolerConfiguration) {
 
     private val logger = LoggerFactory.getLogger(HysteresisProfile::class.java)
 
@@ -44,8 +45,9 @@ class HysteresisProfile @Inject constructor(@Property(name="fermbot.hysteresis.l
             return HeatingMode.OFF
         }
 
+        //todo this is a naive implementation
         val currentTemp = thermometer.get().currentTemp
-        return when(getHysteresisStatus(setpoint, currentTemp)) {
+        val desiredHeatingMode = when(getHysteresisStatus(setpoint, currentTemp)) {
             HysteresisStatus.MAX -> HeatingMode.COOLING
             HysteresisStatus.ABOVE ->  when (currentHeatingMode) {
                 HeatingMode.HEATING -> HeatingMode.OFF
@@ -58,6 +60,8 @@ class HysteresisProfile @Inject constructor(@Property(name="fermbot.hysteresis.l
             }
             HysteresisStatus.MIN -> HeatingMode.HEATING
         }
+
+        return heatingCoolingConfiguration.normalizeHeatingMode(desiredHeatingMode)
     }
 
     fun getHysteresisStatus(setpoint: Temperature, currentTemperature: Temperature) : HysteresisStatus {
@@ -71,6 +75,9 @@ class HysteresisProfile @Inject constructor(@Property(name="fermbot.hysteresis.l
     }
 }
 
+
+
+
 enum class HysteresisStatus {
     MAX,
     ABOVE,
@@ -79,7 +86,7 @@ enum class HysteresisStatus {
     MIN
 }
 
-fun symmetricHysteresisProfile(window: TemperatureWindow) = HysteresisProfile(window, window)
+fun symmetricHysteresisProfile(window: TemperatureWindow, configuration: HeaterCoolerConfiguration) = HysteresisProfile(window, window, configuration)
 
 operator fun Temperature.minus(window: TemperatureWindow): Temperature {
     return Temperature(this.value - window.get(this.unit), this.unit)

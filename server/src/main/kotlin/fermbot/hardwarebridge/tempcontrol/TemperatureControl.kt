@@ -9,6 +9,8 @@ import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Requires
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
+import java.time.Duration
+import java.time.Instant
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
@@ -45,23 +47,48 @@ class HardwareBackedActiveHighDigitalOutputDevice(private val outputPin: Digital
     }
 }
 
+@Factory
+class HeatingCoolingConfigurationFactory {
+
+    @Bean
+    @Singleton
+    fun determineHeatingCoolingConfiguration(@Named("heater") heater: Optional<ActiveHighDigitalOutputDevice>, @Named("cooler") cooler: Optional<ActiveHighDigitalOutputDevice>): HeaterCoolerConfiguration {
+        return if (heater.isPresent) {
+            if (cooler.isPresent) {
+                HeaterCoolerConfiguration.BOTH
+            } else {
+                HeaterCoolerConfiguration.HEATER
+            }
+        } else {
+            if (cooler.isPresent) {
+                HeaterCoolerConfiguration.COOLER
+            } else {
+                HeaterCoolerConfiguration.NONE
+            }
+
+        }
+    }
+}
+
 /**
  * This class is responsible for actuating the heating and cooling devices. It knows nothing about temperature setpoints.
  * Its primary role is to ensure that the heater and cooler are both not enabled at the same time.
  */
 @Singleton
-class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater") private val heater: Optional<ActiveHighDigitalOutputDevice>, @param:Named("cooler") private val cooler: Optional<ActiveHighDigitalOutputDevice>) : TemperatureActuator{
+class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater") private val heater: Optional<ActiveHighDigitalOutputDevice>, @param:Named("cooler") private val cooler: Optional<ActiveHighDigitalOutputDevice>, private val heatingCoolingConfiguration: HeaterCoolerConfiguration) : TemperatureActuator{
+    override val statistics = TemperatureActuatorStatistics()
+
+    override fun resetStatistics() = statistics.reset()
+    private var heatingModeLastChanged = Instant.now()
 
     private var currentHeatingMode = HeatingMode.OFF
 
     private val logger = LoggerFactory.getLogger(HardwareBackedTemperatureActuator::class.java)
 
-    private val heatingCoolingConfiguration = determineHeaterCoolerConfiguration()
-
     @Synchronized override fun getCurrentHeatingMode(): HeatingMode = currentHeatingMode
 
     init {
-//        logger.info("Initializing Temperature Actuator. Heating Configuration: ${heatingCoolingConfiguration.description}. Heating mode is currently $currentMode")
+        logger.info("Initializing Temperature Actuator. Heating Configuration: $heatingCoolingConfiguration. Heating mode is currently $currentHeatingMode")
         if (heatingCoolingConfiguration == HeaterCoolerConfiguration.NONE) {
             logger.warn("No temperature control devices are enabled. The FermBot will not be able to control your fermentation temperature. It will only be monitored. Ensure this is what you want before proceeding")
         }
@@ -76,23 +103,9 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater
             "Heating mode already set to $heatingMode"
         }
 
-        when (heatingCoolingConfiguration) {
-            HeaterCoolerConfiguration.NONE -> {
-               logger.warn("No temperature control devices enabled. Ignoring request to set heating mode to $heatingMode")
-            }
-            HeaterCoolerConfiguration.HEATER -> {
-                if (heatingMode == HeatingMode.COOLING ) {
-                    logger.warn("No cooling device enabled. Ignoring request to set heating mode to $heatingMode")
-                }
-            }
-            HeaterCoolerConfiguration.COOLER -> {
-                if (heatingMode == HeatingMode.HEATING) {
-                    logger.warn("No heating device enabled. Ignoring request to set heating mode to $heatingMode")
-                }
-            }
-            HeaterCoolerConfiguration.BOTH -> { /* do nothing. both devices are configured */ }
+        check(heatingCoolingConfiguration.canUseHeatingMode(heatingMode)) {
+            "Heating Cooling Configuration: $heatingCoolingConfiguration, cannot use heating mode $heatingMode"
         }
-
 
         /* Ensure disable is called first so that there is no time when both are enabled simultaneously
          * Also, put a small pause to ensure that the pin has time to set to low before enabling the other device
@@ -125,34 +138,39 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named("heater
             throw IllegalStateException("Both Heater and cooler enabled simultaneously. Disabling both. This is a programming error. Please report this issue on github immediately")
         }
 
+        val now = Instant.now()
+        val elapsed = Duration.between(heatingModeLastChanged, now)
+        heatingModeLastChanged = now
+
         val prevHeatingMode = currentHeatingMode
         currentHeatingMode = heatingMode
+        statistics.addTime(elapsed, currentHeatingMode)
         return prevHeatingMode
     }
 
-    private fun determineHeaterCoolerConfiguration(): HeaterCoolerConfiguration {
-        return if (heater.isPresent) {
-            if (cooler.isPresent) {
-                HeaterCoolerConfiguration.BOTH
-            } else {
-                HeaterCoolerConfiguration.HEATER
-            }
-        } else {
-            if (cooler.isPresent) {
-                HeaterCoolerConfiguration.COOLER
-            } else {
-                HeaterCoolerConfiguration.NONE
-            }
-
-        }
-    }
 }
 
-enum class HeaterCoolerConfiguration {
-    NONE,
-    HEATER,
-    COOLER,
-    BOTH
+enum class HeaterCoolerConfiguration(val allowableHeatingModes: List<HeatingMode>) {
+    NONE(listOf(HeatingMode.OFF)),
+    HEATER(listOf(HeatingMode.OFF, HeatingMode.HEATING)),
+    COOLER(listOf(HeatingMode.OFF, HeatingMode.COOLING)),
+    BOTH(HeatingMode.values().toList());
+
+
+    fun normalizeHeatingMode(desiredHeatingMode: HeatingMode) = when (this) {
+        NONE -> HeatingMode.OFF
+        BOTH -> desiredHeatingMode
+        HEATER -> when (desiredHeatingMode) {
+            HeatingMode.COOLING -> HeatingMode.OFF
+            else -> desiredHeatingMode
+        }
+        COOLER -> when (desiredHeatingMode) {
+            HeatingMode.HEATING -> HeatingMode.OFF
+            else -> desiredHeatingMode
+        }
+    }
+
+    fun canUseHeatingMode(heatingMode: HeatingMode) = heatingMode in allowableHeatingModes
 }
 
 /**
@@ -163,7 +181,9 @@ enum class HeaterCoolerConfiguration {
  */
 interface TemperatureActuator {
     fun setHeatingMode(heatingMode: HeatingMode): HeatingMode
-    fun getCurrentHeatingMode(): HeatingMode
+    fun getCurrentHeatingMode(): HeatingMode //todo change to val
+    val statistics: TemperatureActuatorStatistics
+    fun resetStatistics()
 }
 
 @Factory

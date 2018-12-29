@@ -41,6 +41,7 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
                                                         @param:Named(BeanDefinitions.SETPOINT_COMPLETION_PERSISTER) private val setpointCompletionPersister: Persister<SetpointCompletion>,
                                                         private val environment: Environment) {
 
+    val statistics = temperatureActuator.statistics
     private var temperatureControlFuture: ScheduledFuture<*>? = null
     private var fermentationMonitorFuture: ScheduledFuture<*>? = null
 
@@ -136,8 +137,8 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
     }
 
     private fun determineSimulationStepDuration(): Duration {
-        //in simulation mode, a second is equivalent to a day
-        return Duration.ofMinutes(10) / (24 * 60 * 60).toDouble()
+        //in simulation mode, a second is equivalent to a day. Equivalent to every 10 minutes
+        return Duration.ofMillis(7)
     }
 
     fun clearProfile() {

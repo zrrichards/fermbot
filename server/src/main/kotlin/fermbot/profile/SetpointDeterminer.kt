@@ -93,6 +93,9 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
 
     fun getRemainingStageInfo() : String {
         val elapsed = Duration.between(currentSetpointCompletion.previousSetpointCompletionTime, Instant.now())
+        if (currentSetpointIndex == setpoints.size) {
+            return "Fermentation complete"
+        }
         return when (currentStage) {
             is TimeBasedSetpoint -> {
                 val duration = (currentStage as TimeBasedSetpoint).duration
