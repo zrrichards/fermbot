@@ -61,7 +61,6 @@ compileKotlin {
 	    jvmTarget = '1.8' 
 	    //Will retain parameter names for Java reflection
 	    javaParameters = true
-        freeCompilerArgs = ["-XXLanguage:-InlineClasses"]
     }
 }
 
