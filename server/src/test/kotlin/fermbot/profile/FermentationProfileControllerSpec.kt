@@ -10,9 +10,6 @@ import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
 import io.micronaut.runtime.server.EmbeddedServer
 import io.micronaut.test.annotation.MicronautTest
-import io.micronaut.test.annotation.MockBean
-import io.mockk.every
-import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -44,19 +41,19 @@ class FermentationProfileRestControllerSpec {
         controller.clearProfile()
     }
 
-    @Replaces(RaspberryPiProfilePersister::class)
+    @Replaces(FileBasedProfilePersister::class)
     @Singleton
-    class MockPersister(private var persistedProfile: MutableList<TemperatureSetpoint> = mutableListOf<TemperatureSetpoint>()) : ProfilePersister { //prevents creating the json file on the filesystem
+    class MockPersister(private var persistedProfile: MutableList<TemperatureSetpoint> = mutableListOf()) : Persister<List<TemperatureSetpoint>> { //prevents creating the json file on the filesystem
 
-        override fun hasPersistedProfile(): Boolean {
+        override fun hasPersistedData(): Boolean {
             return persistedProfile.isNotEmpty()
         }
 
-        override fun readProfile(): List<TemperatureSetpoint> {
+        override fun read(): List<TemperatureSetpoint> {
             return persistedProfile
         }
 
-        override fun persistProfile(currentProfile: List<TemperatureSetpoint>) {
+        override fun persist(currentProfile: List<TemperatureSetpoint>) {
             persistedProfile = currentProfile.toMutableList()
         }
     }

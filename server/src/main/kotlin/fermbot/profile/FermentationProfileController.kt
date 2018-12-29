@@ -19,21 +19,21 @@ import javax.inject.Singleton
  * @version 12/11/19
  */
 @Controller("/profile")
-class FermentationProfileRestController @Inject constructor(private val profilePersister: ProfilePersister) {
+class FermentationProfileRestController @Inject constructor(private val profilePersister: Persister<List<TemperatureSetpoint>>) {
 
-    private val currentProfile: MutableList<TemperatureSetpoint> = if (profilePersister.hasPersistedProfile()) {
-        profilePersister.readProfile().toMutableList()
+    private val currentProfile: MutableList<TemperatureSetpoint> = if (profilePersister.hasPersistedData()) {
+        profilePersister.read().toMutableList()
     } else {
         mutableListOf()
     }
 
     private val logger = LoggerFactory.getLogger(FermentationProfileRestController::class.java)
 
-    private lateinit var setpointDeterminer: SetpointDeterminer
+    private var setpointDeterminer: SetpointDeterminer
 
     init {
         logger.info("CurrentProfile: {}", currentProfile)
-        setpointDeterminer = SetpointDeterminer(currentProfile ) //TODO this is hardcoding that fermentation started now
+        setpointDeterminer = SetpointDeterminer(currentProfile) //TODO this is hardcoding that fermentation started now
     }
 
     @Get("/")
@@ -48,7 +48,7 @@ class FermentationProfileRestController @Inject constructor(private val profileP
             addAll(stages)
         }
         logger.info("Fermentation profile changed to: {}", currentProfile)
-        profilePersister.persistProfile(currentProfile)
+        profilePersister.persist(currentProfile)
     }
 
     fun clearProfile() {
@@ -67,17 +67,14 @@ class TemperatureSetpointDeserializer : JsonDeserializer<TemperatureSetpoint>() 
             } else {
                 ""
             }
-        return when (node.has("untilSg")) {
-            true -> {
+        return if (node.has("untilSg")) {
                 val untilSg = node.get("untilSg").doubleValue()
                 SpecificGravityBasedSetpoint(tempSetpoint, untilSg, stageDescription)
-            }
-            false -> {
+            } else {
                 val duration = p.codec.treeToValue(node.get("duration"), Duration::class.java)
                 val includeRamp = node.get("includeRamp").booleanValue()
                 TimeBasedSetpoint(tempSetpoint, duration, stageDescription, includeRamp)
             }
-        }
     }
 }
 

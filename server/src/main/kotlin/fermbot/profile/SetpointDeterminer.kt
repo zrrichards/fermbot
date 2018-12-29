@@ -1,5 +1,6 @@
 package fermbot.profile
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import fermbot.Hydrometer
 import org.slf4j.LoggerFactory
 import java.time.Instant
@@ -11,15 +12,12 @@ import java.time.Instant
  */
 class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, private var currentSetpointIndex: Int = 0, private val fermentationStart: Instant = Instant.now()) { //TODO is there a better name? this doesn't control the fermentation but it controls which stage of the fermentation we are in
 
+    @JsonIgnore
     private val logger = LoggerFactory.getLogger(SetpointDeterminer::class.java)
 
-    fun getCurrentSetpointIndex() : Int {
-        return currentSetpointIndex
-    }
+    fun getCurrentSetpointIndex() = currentSetpointIndex
 
-    private var currentStageStart: Instant? = if (currentSetpointIndex == 0) {
-        fermentationStart //when did the current fermentation stage start? (we need to be able to say e.g. hold temp "for two days")
-    } else { TODO("Persist start of stage information") }
+    private val fermentationStagesStart = mutableMapOf<Int, Instant>()
 
     fun getSetpoint(hydrometer: Hydrometer): TemperatureSetpoint { //change to Hydrometer? in case user doesn't have one configured
         if (isCurrentStageFulfilled(hydrometer)) {

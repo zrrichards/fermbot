@@ -1,9 +1,6 @@
 package fermbot.profile
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.google.common.jimfs.Configuration
-import com.google.common.jimfs.Jimfs
 import fermbot.monitor.FermentationSnapshot
 import fermbot.monitor.FermentationSnapshotPersister
 import fermbot.monitor.FileBasedFermentationSnapshotPersister
