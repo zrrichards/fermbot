@@ -21,6 +21,9 @@ data class SpecificGravityBasedSetpoint(override val tempSetpoint: Temperature, 
 
 
 data class TimeBasedSetpoint(override val tempSetpoint: Temperature, val duration: Duration, override val stageDescription: String = "", val includeRamp: Boolean) : TemperatureSetpoint(tempSetpoint, stageDescription) {
+    init {
+        check (includeRamp) { "Ignoring ramp time currently not supported" }
+    }
     override fun toString(): String {
         return "$stageDescription[$tempSetpoint for ${duration.toPrettyString()} includeRamp=$includeRamp]" //todo actually support includeRamp
     }

@@ -1,10 +1,9 @@
 package fermbot.profile
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import fermbot.Hydrometer
-import fermbot.orchestrator.toPrettyString
+import fermbot.monitor.FermentationMonitorTask
 import org.slf4j.LoggerFactory
 import java.nio.file.Paths
 import java.time.Duration
@@ -19,7 +18,7 @@ import javax.inject.Singleton
  * @author Zachary Richards
  * @version 12/12/19
  */
-class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, private val setpointCompletionPersister: Persister<SetpointCompletion>) {
+class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, private val setpointCompletionPersister: Persister<SetpointCompletion>, val fermentationMonitorTask: FermentationMonitorTask) {
 
     private val logger = LoggerFactory.getLogger(SetpointDeterminer::class.java)
 
@@ -47,12 +46,15 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
     fun <T: Hydrometer> getSetpoint(hydrometer: Optional<T>): TemperatureSetpoint {
         if (isCurrentStageFulfilled(hydrometer)) {
             val stageName = currentStage.stageDescription.defaultIfEmpty("$currentSetpointIndex")
-            logger.info("""Fermentation stage "$stageName" fulfilled. Moving to next stage""")
-            if (currentSetpointIndex >= setpoints.lastIndex) {
+            val lastStageCompleted = currentSetpointIndex >= setpoints.lastIndex
+            if (lastStageCompleted) {
                 logger.warn("You are currently at the last setpoint and it has been completed. Continuing to hold temp constant at the current setpoint (${currentStage.tempSetpoint}). Is your batch done?")
+            } else {
+                logger.info("""Fermentation stage "$stageName" fulfilled. Moving to next stage""")
             }
 
             currentSetpointCompletion = currentSetpointCompletion.toNextStage()
+            fermentationMonitorTask.run()
             setpointCompletionPersister.persist(currentSetpointCompletion)
         }
         return currentStage
@@ -62,7 +64,7 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
         return when (currentStage) {
             is SpecificGravityBasedSetpoint -> {
                if (hydrometer.isPresent) {
-                   if (hydrometer.get().specificGravity <= (currentStage as SpecificGravityBasedSetpoint).untilSg) {
+                   if (isSpecificGravityBasedSetpointReached(hydrometer)) {
                        logger.info("Specific gravity of ${hydrometer.get().specificGravity} satisfies the current setpont: $currentStage")
                       true
                    } else {
@@ -79,11 +81,26 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
                     logger.info("Duration of $elapsed satisfies current setpoint: ${(currentStage as TimeBasedSetpoint).duration}")
                     true
                 } else {
-                    val remainingTime = (currentStage as TimeBasedSetpoint).duration - elapsed
-                    //todo uncomment
-//                    logger.info("Duration based stage active. Time remaining: ${remainingTime.toPrettyString()}")
                     false
                 }
+            }
+        }
+    }
+
+    private fun <T : Hydrometer> isSpecificGravityBasedSetpointReached(hydrometer: Optional<T>) =
+            hydrometer.get().specificGravity <= (currentStage as SpecificGravityBasedSetpoint).untilSg
+
+    fun getRemainingStageInfo() : String {
+        val elapsed = Duration.between(currentSetpointCompletion.previousSetpointCompletionTime, Instant.now())
+        return when (currentStage) {
+            is TimeBasedSetpoint -> {
+                val duration = (currentStage as TimeBasedSetpoint).duration
+                val remainingTime = duration - elapsed
+                val percentComplete = elapsed / duration * 100
+                """$remainingTime remaining for current stage ("${currentStage.stageDescription}") duration of $duration ($percentComplete% complete)"""
+            }
+            is SpecificGravityBasedSetpoint -> {
+                "TODO SG based setpoint data"
             }
         }
     }
@@ -100,6 +117,8 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
     val currentStage
         get() = setpoints[currentSetpointIndex]
 }
+
+private operator fun Duration.div(other: Duration) = toMillis().toDouble() / other.toMillis().toDouble()
 
 private fun String.defaultIfEmpty(s: String) = if (isEmpty()) { s } else { this }
 

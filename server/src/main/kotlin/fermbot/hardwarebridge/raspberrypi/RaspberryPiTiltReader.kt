@@ -94,18 +94,15 @@ class SimulationTiltReader : ThermoHydrometerReader {
 
     private val logger = LoggerFactory.getLogger(SimulationTiltReader::class.java)
 
-    private var nextValue = 1.000
+    private var nextValue = 1.070
 
     init {
-        logger.info("Initializing SimluationTiltReader")
-    }
-
-    @Post("/simluation/tilt")
-    fun setNextValue(@Body nextValue: Double) {
-        this.nextValue = nextValue
+        logger.info("Initializing SimulationTiltReader")
     }
 
     override fun readTilt(): Optional<ThermoHydrometer> {
-        return Optional.of(Tilt(color=TiltColors.BLACK, specificGravity = nextValue, rawTemp = 45.2))
+        val tilt: Optional<ThermoHydrometer> = Optional.of(Tilt(color = TiltColors.BLACK, specificGravity = nextValue, rawTemp = 45.2))
+        nextValue -= (nextValue - 1) * 0.02
+        return tilt
     }
 }

@@ -18,6 +18,7 @@ import fermbot.brewfather.Brewfather
 import fermbot.hardwarebridge.ThermoHydrometerReader
 import fermbot.hardwarebridge.ThermometerReader
 import fermbot.orchestrator.SystemStatistics
+import fermbot.profile.FermentationProfileController
 import io.micronaut.scheduling.annotation.Scheduled
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -31,9 +32,16 @@ import kotlin.math.round
  * @version $ 12/5/19
  */
 @Singleton
-class FermentationMonitorTask @Inject constructor(private val brewfather: Optional<Brewfather>, private val thermoHydrometerReader: ThermoHydrometerReader, private val thermometerReader: ThermometerReader) : Runnable {
+class FermentationMonitorTask @Inject constructor(private val brewfather: Optional<Brewfather>, private val thermoHydrometerReader: ThermoHydrometerReader, private val thermometerReader: ThermometerReader, private val persister: FermentationSnapshotPersister) : Runnable {
+
+    val snapshots: List<FermentationSnapshot>
+        get() = queue.getAll()
 
     private val logger = LoggerFactory.getLogger(FermentationMonitorTask::class.java)
+
+    private val queue = FermentationSnapshotQueue(persister)
+
+    var fermentationProfileController: FermentationProfileController? = null
 
     init {
         if (brewfather.isPresent) {
@@ -70,7 +78,15 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
             output.append("Tilt reading ${tiltHigh.toStringF()} higher than thermometer")
         }
 
-        logger.info(output.toString())
+            logger.info(output.toString())
+        if (fermentationProfileController != null) {
+            queue.add(FermentationSnapshot(
+                    currentSg = currentSg,
+                    temp = currentTemp,
+                    currentSetpointIndex = fermentationProfileController!!.currentSetpointIndex,
+                    heatingMode = fermentationProfileController!!.getCurrentHeatingMode()
+            ))
+        }
 
         //if brewfather is enabled and we have one of either the temp or SG to log
         if (brewfather.isPresent) {
@@ -86,6 +102,11 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
             logger.debug("Brewfather not enabled, nothing to upload")
         }
 
+    }
+
+    fun clearSnapshots() {
+        queue.clear()
+        persister.clear()
     }
 }
 

@@ -17,7 +17,6 @@ import io.micronaut.scheduling.TaskExecutors
 import io.micronaut.scheduling.TaskScheduler
 import org.slf4j.LoggerFactory
 import java.time.Duration
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -49,6 +48,9 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
 
     private lateinit var setpointDeterminer: SetpointDeterminer
 
+    val currentSetpointIndex: Int
+        get() = setpointDeterminer.currentSetpointIndex
+
     init {
         logger.info("CurrentProfile: {}", if (currentProfile.isEmpty()) { "[empty]" } else { currentProfile })
         fermentationMonitorTask.run() //initial post to brewfather so device is visible
@@ -62,6 +64,9 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
         return currentProfile
     }
 
+    @Get("/snapshots")
+    fun getSnapshots() = fermentationMonitorTask.snapshots
+
     fun setProfile(setpoints: List<TemperatureSetpoint>) {
         require(setpoints.isNotEmpty()) { "Must pass at least one Temperature setpoint" }
         with (currentProfile) {
@@ -73,16 +78,27 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
         setpointCompletionPersister.clear()
     }
 
+    @Get("/status")
+    fun status() : Any {
+        return if (::setpointDeterminer.isInitialized) {
+            setpointDeterminer.getRemainingStageInfo()
+        } else {
+            "No status to report. Fermentation not running"
+        }
+    }
+
     /**
      * Actually starts the fermentation controller and set point
      */
     fun start() {
-        setpointDeterminer = SetpointDeterminer(currentProfile, setpointCompletionPersister)
+        setpointDeterminer = SetpointDeterminer(currentProfile, setpointCompletionPersister, fermentationMonitorTask)
         logger.info("Starting fermentation profile")
         val temperatureControlTask = TemperatureControlTask(
-                setpointDeterminer, hydrometerReader, hysteresisProfile, thermometerReader, temperatureActuator
+                setpointDeterminer, hydrometerReader, hysteresisProfile, thermometerReader, temperatureActuator, fermentationMonitorTask
         )
         temperatureControlTask.run()
+        fermentationMonitorTask.fermentationProfileController = this
+        fermentationMonitorTask.clearSnapshots()
         if (Environments.SIMULATION in environment.activeNames) {
             taskScheduler.scheduleAtFixedRate(Duration.ofMillis(1), Duration.ofMillis(1), temperatureControlTask)
             taskScheduler.scheduleAtFixedRate(Duration.ofSeconds(5), Duration.ofSeconds(5), fermentationMonitorTask)
@@ -104,7 +120,7 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
     }
 }
 
-class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer, private val hydrometerReader: ThermoHydrometerReader, private val hysteresisProfile: HysteresisProfile, private val thermometerReader: ThermometerReader, private val temperatureActuator: TemperatureActuator) : Runnable {
+class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer, private val hydrometerReader: ThermoHydrometerReader, private val hysteresisProfile: HysteresisProfile, private val thermometerReader: ThermometerReader, private val temperatureActuator: TemperatureActuator, private val fermentationMonitorTask: FermentationMonitorTask) : Runnable {
 
     private val logger = LoggerFactory.getLogger(TemperatureControlTask::class.java)
 
@@ -122,6 +138,7 @@ class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer,
         val desiredHeatingMode = hysteresisProfile.determineHeatingMode(setpoint.tempSetpoint, bestThermometer, currentHeatingMode)
         if (currentHeatingMode != desiredHeatingMode) {
             logger.info("Current Setpoint: $setpoint. Current Temperature: $currentTempString Heating Mode: $currentHeatingMode. Changing Heating Mode to: $desiredHeatingMode.")
+            fermentationMonitorTask.run() // if we change heatiing modes, we need to capture it
         }
         temperatureActuator.setHeatingMode(desiredHeatingMode)
     }

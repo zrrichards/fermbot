@@ -9,7 +9,7 @@ import java.time.Instant
  * @author Zachary Richards
  * @version 12/17/19
  */
-data class FermentationSnapshot(val timestamp: Instant = Instant.now(), val temp: Temperature, val currentSg: Double, val heatingMode: HeatingMode, val currentSetpointIndex: Int)
+data class FermentationSnapshot(val timestamp: Instant = Instant.now(), val temp: Temperature?, val currentSg: Double?, val heatingMode: HeatingMode, val currentSetpointIndex: Int)
 
 enum class HeatingMode {
     HEATING,

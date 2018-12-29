@@ -3,6 +3,7 @@ package fermbot.monitor
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.io.File
+import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,12 +15,19 @@ import javax.inject.Singleton
 interface FermentationSnapshotPersister {
     fun append(snapshot: FermentationSnapshot)
     fun readAll(): List<FermentationSnapshot>
+    fun clear()
 }
 
 @Singleton
-class FileBasedFermentationSnapshotPersister @Inject constructor(private val file: File, private val objectMapper: ObjectMapper): FermentationSnapshotPersister { //todo inject file into constructor, replace with in memory file for testing
+class FileBasedFermentationSnapshotPersister @Inject constructor(private val objectMapper: ObjectMapper): FermentationSnapshotPersister {
+    override fun clear() {
+        file.delete()
+    }
+
+    private val file = Paths.get(".fermentation-snapshots").toFile()
+
     override fun append(snapshot: FermentationSnapshot) {
-        file.appendText(objectMapper.writeValueAsString(snapshot))
+        file.appendText(objectMapper.writeValueAsString(snapshot) + "\n")
     }
 
     override fun readAll(): List<FermentationSnapshot> {
