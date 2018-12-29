@@ -51,7 +51,7 @@ class HardwareTester @Inject constructor(private val temperatureActuator: Temper
             logger.info("Activating heating mode: $modeToTest")
             temperatureActuator.setHeatingMode(modeToTest)
             val thermometer = dS18B20Manager.getDevices()
-            logger.info("Thermometer (id=${thermometer.id}) is reading: ${thermometer.currentTemp.asF()}")
+            logger.info("Thermometer (id=${thermometer.id}) is reading: ${thermometer.currentTemp.asF()}F")
             Thread.sleep(stepDuration.toMillis())
         }
         logger.info("===== Hardware Test complete =====")
