@@ -1,5 +1,6 @@
 package fermbot.profile
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fermbot.hardwarebridge.tempcontrol.*
 import fermbot.monitor.HeatingMode
 import fermbot.toF
@@ -17,6 +18,7 @@ import io.micronaut.test.annotation.MicronautTest
 import io.micronaut.test.annotation.MockBean
 import io.mockk.mockk
 import io.mockk.spyk
+import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -43,6 +45,9 @@ class FermentationProfileControllerSpec {
     @Inject
     @field:Client("/")
     private lateinit var client: HttpClient
+
+    @Inject
+    private lateinit var objectMapper: ObjectMapper
 
     @BeforeEach
     fun clearProfile() {
@@ -175,10 +180,5 @@ class FermentationProfileControllerSpec {
         expectThat(profileController.getProfile()).isEqualTo(persistedProfile)
     }
 
-    @Test
-    fun `can test heat for 5 milliseconds`() {
-        val test = TemperatureControllerTestPayload(HeatingMode.HEATING, Duration.ofMillis(5))
-        controller.testTemperatureControl(test)
-    }
 }
 

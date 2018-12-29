@@ -57,22 +57,7 @@ class FermentationProfileRestController @Inject constructor(private val profileP
         currentProfile.clear()
     }
 
-    /**
-     * Allows the user for force activate the temperature controller for the given amount of time.
-     * This is useful for testing the circuit wiring and ensuring the relays are working correctly
-     */
-    fun testTemperatureControl(test: TemperatureControllerTestPayload) {
-        val initialHeatingMode = temperatureActuator.getCurrentHeatingMode()
-        val duration = test.duration.coerceAtMost(Duration.ofSeconds(30))
-        if (duration != test.duration) {
-            logger.warn("Ignoring given duration value of ${test.duration.toPrettyString()}. Using maximum value of 30 seconds")
-        }
-        logger.info("Testing mode: ${test.mode} for ${duration.toPrettyString()}")
-        temperatureActuator.setHeatingMode(test.mode)
-        Thread.sleep(duration.toMillis())
-        logger.info("Test over. Returning heating mode to previous state of: {}", initialHeatingMode)
-        temperatureActuator.setHeatingMode(initialHeatingMode)
-    }
+
 }
 
 @Singleton

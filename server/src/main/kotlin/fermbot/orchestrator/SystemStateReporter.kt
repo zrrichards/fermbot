@@ -13,6 +13,7 @@ package fermbot.orchestrator
  *  GNU General Public License for more details.
  */
 
+import io.micronaut.context.annotation.Context
 import io.micronaut.scheduling.annotation.Scheduled
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
@@ -23,7 +24,7 @@ import javax.inject.Singleton
  * @author Zachary Richards
  * @version $ 12/9/19
  */
-@Singleton
+@Context
 class SystemStateReporter {
 
     private val logger = LoggerFactory.getLogger(SystemStateReporter::class.java)

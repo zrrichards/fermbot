@@ -17,8 +17,10 @@
         </encoder>
     </appender>
 
-    <logger name="fermbot" value="debug" />
-
+    <logger name="fermbot" value="debug" additivity="false">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
+    </logger>
 
     <root level="info">
         <appender-ref ref="STDOUT" />

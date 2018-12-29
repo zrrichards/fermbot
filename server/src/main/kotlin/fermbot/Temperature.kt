@@ -34,6 +34,14 @@ data class Temperature(private val value: Double, val unit: Unit) {
     override fun toString() : String {
         return "$value${unit.symbol}"
     }
+
+    fun asF(): Double {
+        return get(Unit.FAHRENHEIT)
+    }
+
+    fun asC(): Double {
+        return get(Unit.CELSIUS)
+    }
 }
 
 fun fromSymbol(symbol: String): Temperature.Unit {
