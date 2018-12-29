@@ -28,6 +28,8 @@ dependencies {
     implementation "io.micronaut:micronaut-runtime"
     implementation "io.micronaut:micronaut-http-server-netty"
     implementation "io.micronaut:micronaut-http-client"
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.10.1'
+
     kapt platform("io.micronaut:micronaut-bom:$micronautVersion")
     kapt "io.micronaut:micronaut-inject-java"
     kapt "io.micronaut:micronaut-validation"
@@ -39,6 +41,9 @@ dependencies {
     testImplementation "io.micronaut.test:micronaut-test-kotlintest"
     testImplementation "io.mockk:mockk:1.9.3"
     testImplementation "io.kotlintest:kotlintest-runner-junit5:3.3.2"
+    testImplementation "io.strikt:strikt-core:0.23.1"
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
 
     implementation("com.pi4j:pi4j-core:1.2")
     implementation("com.pi4j:pi4j-device:1.2")

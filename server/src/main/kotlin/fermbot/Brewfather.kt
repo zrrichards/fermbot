@@ -41,7 +41,7 @@ class Brewfather @Inject constructor(configuration: Configuration, private val b
 
     @Inject private lateinit var systemStatistics: SystemStatistics
 
-    fun updateBatchDetails(currentTemp: Double, specificGravity: Double): BrewfatherUploadResult {
+    fun updateBatchDetails(currentTemp: Temperature, specificGravity: Double): BrewfatherUploadResult {
         val payload = brewfatherPayloadFactory.createBrewfatherPayload(currentTemp, specificGravity)
         var attempt = 0
         var lastException: Exception? = null

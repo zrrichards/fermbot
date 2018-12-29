@@ -13,6 +13,10 @@ package fermbot
  *  GNU General Public License for more details.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
@@ -24,9 +28,7 @@ import javax.inject.Singleton
  * @version $ 12/9/19
  */
 @Singleton
-class SystemStatistics {
-
-    @Inject private lateinit var configuration: Configuration
+class SystemStatistics @Inject constructor(private val configuration: Configuration){
 
     var latestTiltReading: Tilt? = null
 
@@ -44,6 +46,7 @@ class SystemStatistics {
         get() = successfulUploads.toDouble() / totalUploads * 100
         set(_) { throw UnsupportedOperationException() }
 
+    @JsonSerialize(using=InstantISO8601Serializer::class, `as`=String::class)
     var lastUploadTime: Instant? = null
 
     fun getUptime(): Duration {
@@ -65,4 +68,12 @@ class SystemStatistics {
 
 fun Duration.toPrettyString(): String {
     return minusNanos(nano.toLong()).toString().substring(2).replace("(\\d[HMS])(?!$)".toRegex(), "$1 ").toLowerCase()
+}
+
+fun main() {
+    val config = Configuration()
+val stats =    SystemStatistics(config)
+    stats.lastUploadTime = Instant.now()
+    val json = ObjectMapper().writeValueAsString(stats)
+    println(json)
 }

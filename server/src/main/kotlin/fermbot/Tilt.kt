@@ -13,6 +13,8 @@ package fermbot
  *  GNU General Public License for more details.
  */
 
+import fermbot.ds18b20.TemperatureCorrector
+import fermbot.ds18b20.checkInBounds
 import java.beans.ConstructorProperties
 import java.time.Instant
 
@@ -20,11 +22,29 @@ import java.time.Instant
  * @author Zachary Richards
  */
 class Tilt @ConstructorProperties("color", "sg", "temp") constructor(private val color: TiltColors,
-      override val specificGravity: Double, override val currentTemp: Double) : Thermometer, Hydrometer {
+      override val specificGravity: Double, rawTemp: Double) : Thermometer, Hydrometer {
+
+    override val corrector = NullTemperatureCorrector
+    override val currentTemp = corrector(fahrenheit(rawTemp))
 
     val timestamp = Instant.now()!!
 
     override fun toString(): String {
         return "Tilt(color=$color, specificGravity=$specificGravity, currentTemp=$currentTemp, timestamp=$timestamp)"
+    }
+}
+
+/**
+ * A temperature corrector that does not adjust the temperature. Useful when the temperature is assumed to be accurate enough
+ * or no temperature correction is desired.
+ * Valid from 0C to 100C
+ */
+object NullTemperatureCorrector : TemperatureCorrector {
+    override val upperBound = celsius(100)
+    override val lowerBound = celsius(0)
+
+    override fun invoke(rawTemp: Temperature): Temperature {
+        checkInBounds(rawTemp, this)
+        return rawTemp
     }
 }

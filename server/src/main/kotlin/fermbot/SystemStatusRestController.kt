@@ -29,7 +29,7 @@ class SystemStatusRestController {
     private lateinit var systemStatistics: SystemStatistics
 
     @Get("/")
-    fun getStatus() : Any {
-       return systemStatistics.toString()
+    fun getStatus() : SystemStatistics {
+       return systemStatistics
     }
 }

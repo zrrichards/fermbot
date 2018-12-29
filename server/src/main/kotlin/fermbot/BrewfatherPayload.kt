@@ -13,7 +13,6 @@ package fermbot
  *  GNU General Public License for more details.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,7 +21,7 @@ import javax.inject.Singleton
  * Do not modify variable names in this class, you will break Breafather integration
  * @author Zachary Richards
  */
-data class BrewfatherPayload(val name: String, val temp: Double, val gravity: Double) {
+data class BrewfatherPayload(val name: String, val rawTemp: Double, val gravity: Double) {
    val temp_unit = "F"
    val gravity_unit = "G"
 }
@@ -30,7 +29,7 @@ data class BrewfatherPayload(val name: String, val temp: Double, val gravity: Do
 @Singleton
 class BrewfatherPayloadFactory @Inject constructor(private val configuration: Configuration) {
 
-   fun createBrewfatherPayload(temp: Double, gravity: Double): BrewfatherPayload {
-      return BrewfatherPayload(configuration.deviceName, temp, gravity)
+   fun createBrewfatherPayload(temp: Temperature, gravity: Double): BrewfatherPayload {
+      return BrewfatherPayload(configuration.deviceName, temp.get(Temperature.Unit.FAHRENHEIT), gravity)
    }
 }
