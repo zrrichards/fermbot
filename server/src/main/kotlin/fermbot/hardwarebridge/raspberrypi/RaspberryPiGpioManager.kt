@@ -43,7 +43,7 @@ class RaspberryPiGpioManager : GpioManager {
 
     override fun provisionDigitalOutputDevice(pinName: String, name: String): DigitalOutput {
         check (!isShutDown)
-        val pin = RaspiPin.getPinByName(pinName)
+        val pin = RaspiPin.getPinByName(pinName) ?: throw IllegalArgumentException("Unrecognized Pin named $pinName. Please see the README for valid values")
 
         check (!gpioDevices.containsKey(pin)) {
             "Device already provisioned on pin $pinName. Please select a different pin"

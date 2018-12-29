@@ -31,6 +31,28 @@ by default 1-wire protocol is to be enabled on GPIO4
 
 ... in progress ...
 
+##Configuration
+The base configuration file is in `src/main/resources/application-sample.yml` copy this file to `src/main/resources/application.yml` and update it to suit your particular configuration. For example:
+- Change the device name in fermbot.suffix to match whatever you'd like to call the device (Note: Device names must be unique to log to brewfather with multiple devices)
+- Add the patch to the pytilt script that is in the `python` directory of this repository
+- If you are going to use Brewfather. add the ID of your custom stream
+- Set cooler.enabled to true if you have cooling.
+- If cooling is enabled specify the pin name. The pin names are the names given in the Pi4j library and are specific to your exact model of raspberry pi. See pi4j.com for more information. (Example format of a valid value would be "GPIO 5")
+- Do the same for heating
+- Set the upper and lower bounds for your desired Hysteresis profile. Smaller values will keep tighter temperature control but will use the heaters and coolers more and will use more energy.
+- Set whether or not you have a tilt enabled
+
+##Testing the Configuration
+Send a POST request to "/test/full-hardware" to cycle through the heating/cooling modes you have configured above. Submit a JSON payload in the following format to set the duration of each cycle in the test.
+```json
+{
+    "stepDuration": "PT20S"
+}
+```
+
+That will cycle through each heating mode (heating/cooling/off) for 20 seconds, for three times (i.e. heating on for 20 seconds, cooling on for 20 seconds, then off for 20 seconds).
+
+
 ##Typical Workflow:
 The Fermbot workflow can be visualized as a state machine with four states:
 1. Pending Profile - The Fermbot server is up and is ready to be configured with a fermentation profile
@@ -92,9 +114,9 @@ the beer will be held at 34F for 12 days (14 days in the setpoint minus the two 
 The fermentation profile can be retrieved or changed via a GET or POST request to the "/profile" URL.
 
 The JSON payload of the current stage can be retrieved by issuing a GET request to the "/profile/currentStage" URL
-The current stage can be immediately set by sending a POST request to "/profile/currentStage" containing the 0-based index of the stage. For example, to immediately change the above profile to the 
-"diacetyl rest stage", send a post request with the String "1" to the given URL
 
 Each time the profile is updated, it is persisted to disk and will be retrieved upon next startup. The profile is serialized to JSON and written under 
 `./.fermbot/current-profile.json` and the current stage (integer index of the stage within the profile) is written under
 `./.fermbot/current-profile-stage`
+
+For easy reporting via Excel/Google Sheets. The current fermentation snapshots will be written to `.fermentation-snapshots` and can be easily plotted and manipulated via a spreadsheet

@@ -9,8 +9,5 @@ interface DigitalOutput {
     fun setHigh()
     fun setLow()
     fun isHigh(): Boolean
-
-    fun isLow() : Boolean {
-        return !isHigh()
-    }
+    fun isLow() = !isHigh()
 }

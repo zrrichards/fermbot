@@ -47,6 +47,9 @@ class HardwareTester @Inject constructor(private val temperatureActuator: Temper
         check (heaterCoolerConfiguration != HeaterCoolerConfiguration.NONE) {
             "No heating or cooling device configured. Cannot do hardware test"
         }
+        check (temperatureActuator.currentHeatingMode == HeatingMode.OFF) {
+            "Expected current heating mode to be off before running test"
+        }
         val stepDuration = heatingTestPayload.stepDuration
         val reps = heaterCoolerConfiguration.allowableHeatingModes.size * 3 //3 heating modes 3 times
         logger.info("\n\n\n===== Starting hardware test. Repeating $reps times. Step duration: ${stepDuration.seconds} seconds. Heating/Cooling Devices Configured: $heaterCoolerConfiguration =====")
@@ -74,7 +77,7 @@ class HardwareTester @Inject constructor(private val temperatureActuator: Temper
     private fun getHeatingModeToTest(currentRep: Int): HeatingMode {
 
         //FIXME ignore modes that aren't configured
-        val index = currentRep.rem(heaterCoolerConfiguration.allowableHeatingModes.size)
+        val index = (currentRep + 1).rem(heaterCoolerConfiguration.allowableHeatingModes.size) //add one because "OFF" will be the first mode and off is what we will already be in when starting the test
         return heaterCoolerConfiguration.allowableHeatingModes[index]
     }
 }

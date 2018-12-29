@@ -1,7 +1,5 @@
 package fermbot.hardwarebridge.simulation
 
-import com.pi4j.io.gpio.GpioPinDigitalOutput
-import com.pi4j.io.gpio.Pin
 import fermbot.hardwarebridge.DigitalOutput
 import fermbot.hardwarebridge.GpioManager
 import fermbot.hardwarebridge.raspberrypi.RaspberryPiGpioManager
@@ -37,7 +35,7 @@ class SimulationGpioManager : GpioManager {
 
 class SimulationDigitalOutputDevice : DigitalOutput {
 
-    var isStateHigh = true
+    var isStateHigh = false
 
     override fun setHigh() {
         isStateHigh = true

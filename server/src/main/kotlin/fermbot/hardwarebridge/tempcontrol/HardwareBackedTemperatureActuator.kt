@@ -19,13 +19,36 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named(BeanDef
 
     private var heatingModeLastChanged = Instant.now()
 
-    override var currentHeatingMode: HeatingMode = HeatingMode.OFF
-        private set
+    override val currentHeatingMode: HeatingMode
+        get() = determineHeatingModeFromHardware()
+
+    private var previousHeatingMode = currentHeatingMode
+
+    private fun determineHeatingModeFromHardware(): HeatingMode {
+
+        fun Optional<ActiveHighDigitalOutputDevice>.isEnabled() = map { it.isEnabled() }.orElse(false)
+
+        val isHeaterOn = heater.isEnabled()
+        val isCoolerOn = cooler.isEnabled()
+        if (isHeaterOn && isCoolerOn) {
+            logger.error("Heater and cooler both enabled. Attempting to disable")
+            heater.get().disable()
+            cooler.get().disable()
+            throw IllegalStateException("Heater and cooler both enabled. Report this issue on Github Immediately")
+        }
+
+        return when {
+            isHeaterOn -> HeatingMode.HEATING
+            isCoolerOn -> HeatingMode.COOLING
+            else -> HeatingMode.OFF
+        }
+    }
 
     private val logger = LoggerFactory.getLogger(HardwareBackedTemperatureActuator::class.java)
 
 
     init {
+        check (currentHeatingMode == HeatingMode.OFF) { "Heating mode should initially be off. This is a bug" }
         logger.info("Initializing Temperature Actuator. Heating Configuration: $heatingCoolingConfiguration. Heating mode is currently $currentHeatingMode")
         if (heatingCoolingConfiguration == HeaterCoolerConfiguration.NONE) {
             logger.warn("No temperature control devices are enabled. The FermBot will not be able to control your fermentation temperature. It will only be monitored. Ensure this is what you want before proceeding")
@@ -44,6 +67,8 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named(BeanDef
         check(heatingCoolingConfiguration.canUseHeatingMode(heatingMode)) {
             "Heating Cooling Configuration: $heatingCoolingConfiguration, cannot use heating mode $heatingMode"
         }
+
+        previousHeatingMode = currentHeatingMode
 
         /* Ensure disable is called first so that there is no time when both are enabled simultaneously
          * Also, put a small pause to ensure that the pin has time to set to low before enabling the other device
@@ -79,10 +104,9 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named(BeanDef
         val now = Instant.now()
         val elapsed = Duration.between(heatingModeLastChanged, now)
         heatingModeLastChanged = now
-
-        val prevHeatingMode = currentHeatingMode
-        currentHeatingMode = heatingMode
-        return prevHeatingMode
+        return previousHeatingMode
     }
 
 }
+
+

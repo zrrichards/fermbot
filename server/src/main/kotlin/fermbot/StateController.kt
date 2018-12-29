@@ -41,28 +41,28 @@ class StateController @Inject constructor (private val fermentationProfileContro
 
     @Post("/profile")
     fun profile(@Body setpoints: List<TemperatureSetpoint>) {
-        checkState(State.PENDING_PROFILE)
+        checkState("Profile", State.PENDING_PROFILE)
         fermentationProfileController.setProfile(setpoints)
         setState(State.READY)
     }
 
     @Post("/start")
     fun start() {
-        checkState(State.READY)
+        checkState("Start", State.READY)
         fermentationProfileController.start()
         setState(State.RUNNING)
     }
 
     @Post("/pause")
     fun pause() {
-        checkState(State.RUNNING)
+        checkState("Pause", State.RUNNING)
         fermentationProfileController.cancel()
         setState(State.READY)
     }
 
     @Post("/cancel")
     fun cancel() {
-        checkState(State.RUNNING)
+        checkState("Cancel", State.RUNNING)
         fermentationProfileController.cancel()
         fermentationProfileController.clearProfile()
         setState(State.PENDING_PROFILE)
@@ -70,14 +70,14 @@ class StateController @Inject constructor (private val fermentationProfileContro
 
     @Post("/reset")
     fun reset() {
-        checkState(State.READY)
+        checkState("Reset", State.READY)
         fermentationProfileController.clearProfile()
         setState(State.PENDING_PROFILE)
     }
 
-    private fun checkState(desiredState: State) {
+    private fun checkState(operation: String, desiredState: State) {
         check(currentState == desiredState)  {
-            "Start can only be called when in the ${desiredState.name} state. Current state: $currentState"
+            "$operation can only be called when in the ${desiredState.name} state. Current state: $currentState"
         }
     }
 

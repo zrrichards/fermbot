@@ -92,7 +92,7 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
 
         val profileAsString = StringBuilder()
         currentProfile.forEachIndexed { i, currentStage ->
-            profileAsString.append("\t${padToWidth(i + 1, currentProfile.size.numDigits())}: $currentStage\n") //display as one-based
+            profileAsString.append("\t\t\t\t${padToWidth(i + 1, currentProfile.size.numDigits())}: $currentStage\n") //display as one-based
         }
         return profileAsString.toString()
     }
@@ -131,7 +131,7 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
 
     private fun determineSimulationStepDuration(): Duration {
         //in simulation mode, a second is equivalent to a day. Equivalent to every 10 minutes
-        return Duration.ofMillis(7)
+        return Duration.ofMillis(10)
     }
 
     fun clearProfile() {

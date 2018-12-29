@@ -37,7 +37,7 @@ class SimulationDs18b20Manager : ThermometerReader {
 
     var thermometer: Optional<Thermometer> = Optional.of(DS18B20("simulation-id", 50.0.toF(), Instant.now()))
 
-    override fun getDevices(): Optional<Thermometer> {
+    @Synchronized override fun getDevices(): Optional<Thermometer> {
         if (thermometer.get().timestamp < Instant.now().minusMillis(6)) {
             refresh()
         }

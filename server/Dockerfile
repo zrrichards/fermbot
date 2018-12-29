@@ -1,4 +1,5 @@
-FROM adoptopenjdk/openjdk11-openj9:jdk-11.0.1.13-alpine-slim
+FROM arm64v8/openjdk:11-jre-slim-buster
+RUN curl -sSL https://pi4j.com/install | sudo bash
 COPY build/libs/fermbot-*-all.jar fermbot.jar
 COPY python python
 EXPOSE 8080
