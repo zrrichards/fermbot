@@ -1,7 +1,7 @@
 package fermbot.ds18b20
 
 import fermbot.Temperature
-import fermbot.celsius
+import fermbot.toC
 
 /**
  * From the DS18B20 datasheet we see the following mean error points (in Celsius):
@@ -19,8 +19,8 @@ import fermbot.celsius
  * @version 12/11/19
  */
 object DefaultDS18B20TemperatureCorrector : TemperatureCorrector {
-    override val upperBound = celsius(0)
-    override val lowerBound = celsius(30)
+    override val upperBound = 0.0.toC()
+    override val lowerBound = 30.0.toC()
 
     private val correctorDelegate = CustomDS18B20TemperatureCorrector(1.833333e-4, -6.666666e-3, -0.14, lowerBound, upperBound)
 
@@ -40,7 +40,7 @@ class CustomDS18B20TemperatureCorrector(val a: Double, val b: Double, val c: Dou
         checkInBounds(rawTemp, this)
         val rawTempCelsius = rawTemp.get(Temperature.Unit.CELSIUS)
         val correctedTemp = (a * rawTempCelsius * rawTempCelsius) + (b * rawTempCelsius) + c
-        return celsius(correctedTemp)
+        return correctedTemp.toC()
     }
 
 }

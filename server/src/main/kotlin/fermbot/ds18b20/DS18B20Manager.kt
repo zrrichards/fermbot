@@ -5,7 +5,7 @@ import com.pi4j.component.temperature.impl.TmpDS18B20DeviceType
 import com.pi4j.io.w1.W1Device
 import com.pi4j.io.w1.W1Master
 import com.pi4j.temperature.TemperatureScale
-import fermbot.celsius
+import fermbot.toC
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import javax.inject.Singleton
@@ -37,7 +37,7 @@ class DS18B20Manager {
         check(w1Devices.size == 1)  { "Only a single DS18B20 is supported right now. Number found: ${w1Devices.size}. Please report this issue on GitHub"}
         val device = w1Devices[0]
         device as TemperatureSensor
-        val temp = corrector(celsius(device.getTemperature(TemperatureScale.CELSIUS)))
+        val temp = corrector(device.getTemperature(TemperatureScale.CELSIUS).toC())
         val ds18b20 = DS18B20(device.id, temp, Instant.now())
         logger.debug("Read DS18B20: {}", ds18b20)
         return ds18b20

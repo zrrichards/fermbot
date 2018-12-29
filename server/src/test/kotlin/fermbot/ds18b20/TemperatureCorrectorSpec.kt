@@ -1,6 +1,6 @@
 package fermbot.ds18b20
 
-import fermbot.celsius
+import fermbot.toC
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -25,8 +25,8 @@ class TemperatureCorrectorSpec {
         //y = ax^2 + bx + c
 
         for (i in 0 until x.size) {
-            expectThat(CustomDS18B20TemperatureCorrector(a[i].toDouble(), b[i].toDouble(), c[i].toDouble(), celsius(0), celsius(100))(celsius(x[i])))
-                    .isEqualTo(celsius(y[i].toDouble()))
+            expectThat(CustomDS18B20TemperatureCorrector(a[i].toDouble(), b[i].toDouble(), c[i].toDouble(), 0.0.toC(), 100.0.toC())(x[i].toDouble().toC()))
+                    .isEqualTo(y[i].toDouble().toC())
         }
     }
 }

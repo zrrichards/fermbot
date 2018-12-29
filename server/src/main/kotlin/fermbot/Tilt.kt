@@ -13,8 +13,6 @@ package fermbot
  *  GNU General Public License for more details.
  */
 
-import fermbot.ds18b20.TemperatureCorrector
-import fermbot.ds18b20.checkInBounds
 import java.beans.ConstructorProperties
 import java.time.Instant
 
@@ -24,7 +22,7 @@ import java.time.Instant
 class Tilt @ConstructorProperties("color", "sg", "temp") constructor(private val color: TiltColors,
       override val specificGravity: Double, rawTemp: Double) : Thermometer, Hydrometer {
 
-    override val currentTemp = fahrenheit(rawTemp)
+    override val currentTemp = rawTemp.toF()
 
     override val timestamp = Instant.now()!!
 
