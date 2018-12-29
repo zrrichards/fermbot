@@ -8,10 +8,8 @@ import java.util.*
  * @author Zachary Richards
  * @version 12/30/19
  */
-fun <T> cascadeOptionals(optional1: Optional<out T>, optional2: Optional<out T>): Optional<T> {
-    return when {
+fun <T> cascadeOptionals(optional1: Optional<out T>, optional2: Optional<out T>) = when {
         optional2.isPresent -> optional2
         optional1.isPresent -> optional1
         else -> Optional.empty()
     } as Optional<T>
-}

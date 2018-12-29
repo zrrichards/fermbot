@@ -24,7 +24,7 @@ class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer,
 
         val desiredHeatingMode = hysteresisProfile.determineHeatingMode(setpoint.tempSetpoint, bestThermometer, currentHeatingMode)
         if (currentHeatingMode != desiredHeatingMode) {
-            logger.info("Current Setpoint: $setpoint. Current Temperature: $currentTempString Heating Mode: $currentHeatingMode. Changing Heating Mode to: $desiredHeatingMode.")
+            logger.info("Current Setpoint: $setpoint. Current Temperature: $currentTempString")
             temperatureActuator.setHeatingMode(desiredHeatingMode)
             fermentationMonitorTask.run() // if we change heating modes, we need to capture it
         }

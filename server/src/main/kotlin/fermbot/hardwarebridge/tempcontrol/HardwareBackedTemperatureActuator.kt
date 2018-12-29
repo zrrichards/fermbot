@@ -26,7 +26,6 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named(BeanDef
 
     private fun determineHeatingModeFromHardware(): HeatingMode {
 
-        fun Optional<ActiveHighDigitalOutputDevice>.isEnabled() = map { it.isEnabled() }.orElse(false)
 
         val isHeaterOn = heater.isEnabled()
         val isCoolerOn = cooler.isEnabled()
@@ -46,6 +45,7 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named(BeanDef
 
     private val logger = LoggerFactory.getLogger(HardwareBackedTemperatureActuator::class.java)
 
+    private fun Optional<ActiveHighDigitalOutputDevice>.isEnabled() = map { it.isEnabled() }.orElse(false)
 
     init {
         check (currentHeatingMode == HeatingMode.OFF) { "Heating mode should initially be off. This is a bug" }
@@ -95,7 +95,7 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named(BeanDef
         }
 
         //this can only happen due to a programming error but check anyway
-        if (heater.isPresent && heater.get().isEnabled() && cooler.isPresent && cooler.get().isEnabled()) {
+        if (heater.isEnabled() && cooler.isEnabled()) {
             heater.get().disable()
             cooler.get().disable()
             throw IllegalStateException("Both Heater and cooler enabled simultaneously. Disabling both. This is a programming error. Please report this issue on github immediately")
@@ -103,6 +103,7 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named(BeanDef
 
         val now = Instant.now()
         val elapsed = Duration.between(heatingModeLastChanged, now)
+        logger.info("Changing heating mode from $previousHeatingMode to $currentHeatingMode. Was in mode '$previousHeatingMode for $elapsed")
         heatingModeLastChanged = now
         return previousHeatingMode
     }
