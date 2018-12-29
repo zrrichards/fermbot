@@ -29,8 +29,11 @@ class FermentationProfileRestController @Inject constructor(private val profileP
 
     private val logger = LoggerFactory.getLogger(FermentationProfileRestController::class.java)
 
+    private lateinit var setpointDeterminer: SetpointDeterminer
+
     init {
         logger.info("CurrentProfile: {}", currentProfile)
+        setpointDeterminer = SetpointDeterminer(currentProfile ) //TODO this is hardcoding that fermentation started now
     }
 
     @Get("/")
@@ -59,7 +62,11 @@ class TemperatureSetpointDeserializer : JsonDeserializer<TemperatureSetpoint>() 
         val node = p.codec.readTree<JsonNode>(p)
         val tempSetpointNode = node.get("tempSetpoint")
         val tempSetpoint = p.codec.treeToValue(tempSetpointNode, Temperature::class.java)
-        val stageDescription = node.get("stageDescription").textValue()
+        val stageDescription = if (node.has("stageDescription")) {
+                node.get("stageDescription").textValue()
+            } else {
+                ""
+            }
         return when (node.has("untilSg")) {
             true -> {
                 val untilSg = node.get("untilSg").doubleValue()

@@ -56,8 +56,8 @@ class FermentationProfileRestControllerSpec {
             return persistedProfile
         }
 
-        override fun persistProfile(currentProfile: MutableList<TemperatureSetpoint>) {
-            persistedProfile = currentProfile
+        override fun persistProfile(currentProfile: List<TemperatureSetpoint>) {
+            persistedProfile = currentProfile.toMutableList()
         }
     }
 

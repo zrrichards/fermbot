@@ -10,7 +10,7 @@ import javax.inject.Singleton
 interface ProfilePersister {
     fun hasPersistedProfile(): Boolean
     fun readProfile(): List<TemperatureSetpoint>
-    fun persistProfile(currentProfile: MutableList<TemperatureSetpoint>)
+    fun persistProfile(currentProfile: List<TemperatureSetpoint>)
 }
 
 @Singleton
@@ -30,7 +30,7 @@ class RaspberryPiProfilePersister @Inject constructor(private val objectMapper: 
         }
     }
 
-    override fun persistProfile(currentProfile: MutableList<TemperatureSetpoint>) {
+    override fun persistProfile(currentProfile: List<TemperatureSetpoint>) {
         logger.info("Persisting fermentation profile to: {}", currentProfileFile.absolutePath)
         currentProfileFile.writeText(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(currentProfile))
     }
