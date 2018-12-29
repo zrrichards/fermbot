@@ -90,27 +90,25 @@ class HardwareTesterSpec {
 
     @Test
     fun `can test heat for 5 milliseconds`() {
-        val test = TemperatureControllerTestPayload(HeatingMode.HEATING, Duration.ofMillis(5))
+        val test = TemperatureControllerTestPayload(HeatingMode.HEATING, Duration.ofMillis(1))
         val currentMode = temperatureActuator.getCurrentHeatingMode()
         expectThat(currentMode).isEqualTo(HeatingMode.OFF)
         controller.testTemperatureControl(test)
         verify(exactly = 1) {
             temperatureActuator.setHeatingMode(HeatingMode.HEATING)
         }
-        //todo mock "sleeper"
         expectThat(temperatureActuator.getCurrentHeatingMode()).isEqualTo(HeatingMode.OFF)
     }
 
     @Test
     fun `can test cooling for 5 milliseconds`() {
-        val test = TemperatureControllerTestPayload(HeatingMode.COOLING, Duration.ofMillis(5))
+        val test = TemperatureControllerTestPayload(HeatingMode.COOLING, Duration.ofMillis(1))
         val currentMode = temperatureActuator.getCurrentHeatingMode()
         expectThat(currentMode).isEqualTo(HeatingMode.OFF)
         controller.testTemperatureControl(test)
         verify(exactly = 1) {
             temperatureActuator.setHeatingMode(HeatingMode.COOLING)
         }
-        //todo mock "sleeper"
         expectThat(temperatureActuator.getCurrentHeatingMode()).isEqualTo(HeatingMode.OFF)
     }
 

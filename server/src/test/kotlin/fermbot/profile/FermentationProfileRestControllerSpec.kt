@@ -34,7 +34,7 @@ import javax.inject.Singleton
  * @version 12/11/19
  */
 @MicronautTest
-class FermentationProfileControllerSpec {
+class FermentationProfileRestControllerSpec {
 
     @Inject
     lateinit var server: EmbeddedServer
