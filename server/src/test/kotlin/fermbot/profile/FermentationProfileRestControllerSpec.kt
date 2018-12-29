@@ -11,6 +11,8 @@ import io.micronaut.http.client.annotation.Client
 import io.micronaut.runtime.server.EmbeddedServer
 import io.micronaut.test.annotation.MicronautTest
 import io.micronaut.test.annotation.MockBean
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -44,8 +46,7 @@ class FermentationProfileRestControllerSpec {
 
     @Replaces(RaspberryPiProfilePersister::class)
     @Singleton
-    class MockPersister : ProfilePersister { //prevents creating the json file on the filesystem
-        var persistedProfile = mutableListOf<TemperatureSetpoint>()
+    class MockPersister(private var persistedProfile: MutableList<TemperatureSetpoint> = mutableListOf<TemperatureSetpoint>()) : ProfilePersister { //prevents creating the json file on the filesystem
 
         override fun hasPersistedProfile(): Boolean {
             return persistedProfile.isNotEmpty()
@@ -134,5 +135,19 @@ class FermentationProfileRestControllerSpec {
         expectThat(list).isEqualTo(profileList)
 
     }
+
+    @Test
+    fun `persisted profiles are loaded at startup`() {
+        val persistedProfile: MutableList<TemperatureSetpoint> = mutableListOf(
+                SpecificGravityBasedSetpoint(48.0.toF(), 1.023, "Primary")
+        )
+        val mockPersister = MockPersister(persistedProfile)
+
+        val profileController = FermentationProfileRestController(mockPersister)
+
+        expectThat(profileController.getProfile()).isEqualTo(persistedProfile)
+    }
+
+    
 }
 
