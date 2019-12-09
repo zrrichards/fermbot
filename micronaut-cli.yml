@@ -1,0 +1,5 @@
+profile: service
+defaultPackage: fermbot
+---
+testFramework: kotlintest
+sourceLanguage: kotlin

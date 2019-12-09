@@ -1,0 +1,12 @@
+#Rename this file to application.yml and customize with your specific properties
+
+micronaut:
+  application:
+    name: fermbot
+
+fermbot:
+  suffix: #Enter your device name here. These must be unique per fermbot instance
+  pytilt-script-path: #Enter the path to the python directory of this repository. Do not include the trailing slash
+
+brewfather:
+  customStreamId: #Enter the custom stream ID from Brewfather (the text after id=)
