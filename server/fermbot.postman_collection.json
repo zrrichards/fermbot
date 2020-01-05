@@ -106,6 +106,39 @@
 			"response": []
 		},
 		{
+			"name": "Force Snapshot",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n\t{\n        \"tempSetpoint\": \"48F\",\n        \"duration\": \"PT14S\",\n        \"stageDescription\": \"Primary\",\n        \"includeRamp\": true\n\t},\n    {\n        \"tempSetpoint\": \"65F\",\n        \"duration\": \"PT5S\",\n        \"stageDescription\": \"Diacetyl Rest\",\n        \"includeRamp\": true\n    },\n    {\n        \"tempSetpoint\": \"34F\",\n        \"duration\": \"PT14S\",\n        \"stageDescription\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/nextSetpoint",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"nextSetpoint"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Get Profile",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
@@ -281,6 +314,42 @@
 					],
 					"path": [
 						"snapshots"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Most Recent Snapshot",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"tempSetpoint\": \"48F\",\n        \"untilSg\": 1.023,\n        \"stageDescription\": \"Primary\"\n    },\n    {\n        \"tempSetpoint\": \"62F\",\n        \"duration\": \"P2D\",\n        \"stageDescription\": \"Diacetyl Rest\",\n        \"includeRamp\": false\n    },\n    {\n        \"tempSetpoint\": \"34F\",\n        \"duration\": \"P14D\",\n        \"stageDescription\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/latest-snapshot",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"latest-snapshot"
 					]
 				}
 			},
