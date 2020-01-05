@@ -21,11 +21,11 @@ class TemperatureSetpointDeserializer : JsonDeserializer<TemperatureSetpoint>() 
             }
         return if (node.has("untilSg")) {
                 val untilSg = node.get("untilSg").doubleValue()
-            SpecificGravityBasedSetpoint(tempSetpoint, untilSg, description)
+                SpecificGravityBasedSetpoint(tempSetpoint, untilSg, description)
             } else {
                 val duration = p.codec.treeToValue(node.get("duration"), Duration::class.java)
                 val includeRamp = node.get("includeRamp").booleanValue()
-            TimeBasedSetpoint(tempSetpoint, duration, description, includeRamp)
+                TimeBasedSetpoint(tempSetpoint, duration, description, includeRamp)
             }
     }
 }

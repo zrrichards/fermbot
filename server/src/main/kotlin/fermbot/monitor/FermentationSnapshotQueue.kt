@@ -17,6 +17,9 @@ class FermentationSnapshotQueue(private val persister: FermentationSnapshotPersi
     val oldest: FermentationSnapshot
         get() = queue.first
 
+    val newest: FermentationSnapshot
+        get() = queue.last
+
     fun add(snapshot: FermentationSnapshot) {
         queue.add(snapshot)
         persister.append(snapshot)

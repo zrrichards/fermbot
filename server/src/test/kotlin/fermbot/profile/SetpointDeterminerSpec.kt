@@ -42,7 +42,7 @@ class SetpointDeterminerSpec {
     }
 
     @Test
-    fun `initial setpoint is changed if gravity is equal to what is defined in the profile`() {
+    fun `initial setpoint is changed if gravity is equal to what is defined in the profile, and there are no persisted setpoints`() {
         val profileController = SetpointDeterminer(gravityBasedLagerProfile, SetpointCompletionPersister(), mockk(relaxed=true))
         val setpoint = profileController.getSetpoint(FixedHydrometer(1.023).toOptional())
         expectThat(setpoint).isEqualTo(gravityBasedLagerProfile[1])

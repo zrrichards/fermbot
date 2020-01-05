@@ -69,7 +69,7 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
 
     @Get("/snapshots", produces=[MediaType.TEXT_PLAIN])
     fun getSnapshots(): String {
-        return fermentationMonitorTask.allSnapshots.joinToString("\n")
+        return fermentationMonitorTask.snapshotsAsCsv.joinToString("\n")
     }
 
     fun setProfile(setpoints: List<TemperatureSetpoint>) {
@@ -109,6 +109,16 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
         } else {
             "No status to report. Fermentation not running"
         }
+    }
+
+    @Get("latest-snapshot")
+    fun getLatestSnapshot() = fermentationMonitorTask.mostRecentSnapshot
+
+    @Post("/snapshot")
+    fun captureSnapshot() {
+        val canRun = fermentationMonitorFuture != null && !fermentationMonitorFuture.isCancelled
+        check(canRun)
+        fermentationMonitorTask.run()
     }
 
     /**

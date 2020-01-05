@@ -54,11 +54,10 @@ That will cycle through each heating mode (heating/cooling/off) for 20 seconds, 
 
 ## Terminology
 *State* - The current state of the fermbot machine (see Typical Workflow below)
-*Stage* - The current
-*Setpoint*
-*Profile* 
-*Heating Mode*
-*Heating Cooling Configuration*
+*Setpoint* - A temperature and duration (either time or until a specific gravity is reached) for a portion of the fermentation (e.g. 48F for 14 days or 65F until SG reaches 1.025)
+*Profile* - An ordered list of setpoints that comprise a fermentation schedule for a particular beer
+*Heating Mode* - A means of temperature control (Heating, Cooling, or Off)
+*Heating Cooling Configuration* - Which peripheral devices are enabled (Heater, cooler, both, none). If no cooler is present, then heating mode Cooling makes no sense and can't be used
 
 ##Typical Workflow:
 The Fermbot workflow can be visualized as a state machine with four states:

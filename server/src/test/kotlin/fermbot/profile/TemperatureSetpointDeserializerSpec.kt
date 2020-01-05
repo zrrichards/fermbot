@@ -25,9 +25,9 @@ class TemperatureSetpointDeserializerSpec {
     @Test
     fun `can deserialize specific-gravity based setpoint`() {
         val json= """    {
-                "tempSetpoint": "48F",
+                "temperature": "48F",
                 "untilSg": 1.023,
-                "stageDescription": "Primary"
+                "description": "Primary"
             },
             """
 
@@ -38,7 +38,7 @@ class TemperatureSetpointDeserializerSpec {
     @Test
     fun `can deserialize specific-gravity based setpoint without a description`() {
         val json= """    {
-                "tempSetpoint": "48F",
+                "temperature": "48F",
                 "untilSg": 1.023
             },
             """
@@ -50,9 +50,9 @@ class TemperatureSetpointDeserializerSpec {
     @Test
     fun `can deserialize time-based setpoint`() {
         val json = """{
-            "tempSetpoint": "62F",
+            "temperature": "62F",
             "duration": "P2D",
-            "stageDescription": "Diacetyl Rest",
+            "description": "Diacetyl Rest",
             "includeRamp": true
         }"""
 
@@ -63,7 +63,7 @@ class TemperatureSetpointDeserializerSpec {
     @Test
     fun `can deserialize time-based setpoint without a description`() {
         val json = """{
-            "tempSetpoint": "62F",
+            "temperature": "62F",
             "duration": "P2D",
             "includeRamp": true
         }"""

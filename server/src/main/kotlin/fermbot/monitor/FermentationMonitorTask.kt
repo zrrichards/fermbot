@@ -34,12 +34,15 @@ import kotlin.math.round
 @Singleton
 class FermentationMonitorTask @Inject constructor(private val brewfather: Optional<Brewfather>, private val thermoHydrometerReader: ThermoHydrometerReader, private val thermometerReader: ThermometerReader, private val persister: FermentationSnapshotPersister) : Runnable {
 
-    val allSnapshots: List<String>
+    val snapshotsAsCsv: List<String>
         get() = persister.readAsCsv()
 
     private val logger = LoggerFactory.getLogger(FermentationMonitorTask::class.java)
 
     private val queue = FermentationSnapshotQueue(persister, Duration.ofHours(7))
+
+    val mostRecentSnapshot: FermentationSnapshot
+        get() = queue.newest
 
     var fermentationProfileController: FermentationProfileController? = null
 
