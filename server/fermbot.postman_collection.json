@@ -53,7 +53,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "[\n\t{\n        \"tempSetpoint\": \"48F\",\n        \"duration\": \"PT14S\",\n        \"stageDescription\": \"Primary\",\n        \"includeRamp\": true\n\t},\n    {\n        \"tempSetpoint\": \"65F\",\n        \"duration\": \"PT5S\",\n        \"stageDescription\": \"Diacetyl Rest\",\n        \"includeRamp\": true\n    },\n    {\n        \"tempSetpoint\": \"34F\",\n        \"duration\": \"PT14S\",\n        \"stageDescription\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
+					"raw": "[\n\t{\n        \"tempSetpoint\": \"48F\",\n        \"duration\": \"PT140S\",\n        \"stageDescription\": \"Primary\",\n        \"includeRamp\": true\n\t},\n    {\n        \"tempSetpoint\": \"65F\",\n        \"duration\": \"PT50S\",\n        \"stageDescription\": \"Diacetyl Rest\",\n        \"includeRamp\": true\n    },\n    {\n        \"tempSetpoint\": \"34F\",\n        \"duration\": \"PT140S\",\n        \"stageDescription\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -67,6 +67,39 @@
 					],
 					"path": [
 						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Next Setpoint",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n\t{\n        \"tempSetpoint\": \"48F\",\n        \"duration\": \"PT14S\",\n        \"stageDescription\": \"Primary\",\n        \"includeRamp\": true\n\t},\n    {\n        \"tempSetpoint\": \"65F\",\n        \"duration\": \"PT5S\",\n        \"stageDescription\": \"Diacetyl Rest\",\n        \"includeRamp\": true\n    },\n    {\n        \"tempSetpoint\": \"34F\",\n        \"duration\": \"PT14S\",\n        \"stageDescription\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/nextSetpoint",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"nextSetpoint"
 					]
 				}
 			},

@@ -32,6 +32,7 @@ class RaspberryPiDS18B20Manager @Inject constructor(private val corrector: Tempe
 
     init {
         "Initializing: ${this.javaClass.simpleName}"
+        "Temperature corrector: $corrector"
     }
 
     /**

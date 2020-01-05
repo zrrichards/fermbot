@@ -71,7 +71,8 @@ class HardwareTester @Inject constructor(private val temperatureActuator: Temper
             logger.info("End of iteration ${currentRep + 1}/$reps. Pausing for $stepDuration\n")
             Thread.sleep(stepDuration.toMillis())
         }
-        logger.info("===== Hardware Test complete =====\n\n\n")
+        logger.info("===== Hardware Test complete. Setting heating mode to off =====\n\n\n")
+        temperatureActuator.setHeatingMode(HeatingMode.OFF)
     }
 
     private fun getHeatingModeToTest(currentRep: Int): HeatingMode {

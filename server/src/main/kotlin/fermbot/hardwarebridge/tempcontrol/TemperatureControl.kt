@@ -3,15 +3,12 @@ package fermbot.hardwarebridge.tempcontrol
 import fermbot.hardwarebridge.DigitalOutput
 import fermbot.hardwarebridge.GpioManager
 import fermbot.monitor.HeatingMode
-import fermbot.profile.BeanDefinitions
 import fermbot.profile.FermbotProperties
 import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Factory
 import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Requires
 import org.slf4j.LoggerFactory
-import java.lang.IllegalArgumentException
-import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -44,29 +41,6 @@ class HardwareBackedActiveHighDigitalOutputDevice(private val outputPin: Digital
 
     override fun disable() {
         outputPin.setLow()
-    }
-}
-
-@Factory
-class HeatingCoolingConfigurationFactory {
-
-    @Bean
-    @Singleton
-    fun determineHeatingCoolingConfiguration(@Named(BeanDefinitions.HEATER) heater: Optional<ActiveHighDigitalOutputDevice>, @Named(BeanDefinitions.COOLER) cooler: Optional<ActiveHighDigitalOutputDevice>): HeaterCoolerConfiguration {
-        return if (heater.isPresent) {
-            if (cooler.isPresent) {
-                HeaterCoolerConfiguration.BOTH
-            } else {
-                HeaterCoolerConfiguration.HEATER
-            }
-        } else {
-            if (cooler.isPresent) {
-                HeaterCoolerConfiguration.COOLER
-            } else {
-                HeaterCoolerConfiguration.NONE
-            }
-
-        }
     }
 }
 

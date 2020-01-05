@@ -9,6 +9,7 @@ import fermbot.monitor.HeatingMode
 import io.micronaut.context.env.Environment
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
+import io.micronaut.http.annotation.Post
 import io.micronaut.scheduling.TaskExecutors
 import io.micronaut.scheduling.TaskScheduler
 import org.slf4j.LoggerFactory
@@ -143,6 +144,14 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
 
     fun isProfileSet(): Boolean {
         return currentProfile.isNotEmpty()
+    }
+
+    @Post("/nextSetpoint")
+    fun nextSetpoint(): String {
+        logger.info("Received request to advance to next setpoint")
+        val previousSetpoint = currentSetpoint
+        setpointDeterminer.advanceToNextSetpoint()
+        return "Changing setpoint from $previousSetpoint to $currentSetpoint"
     }
 
     fun cancel() {

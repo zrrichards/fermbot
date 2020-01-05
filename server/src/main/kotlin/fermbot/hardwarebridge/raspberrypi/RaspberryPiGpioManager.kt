@@ -33,7 +33,7 @@ class RaspberryPiGpioManager : GpioManager {
         isShutDown = true
         logger.info("Shutting down GPIO manager")
         gpioDevices.forEach {
-            logger.debug("Shutting down device on pin: {}", it.key.name)
+            logger.info("Shutting down device on pin: {}", it.key.name)
             it.value.low()
             GpioFactory.getInstance().unprovisionPin(it.value)
         }
@@ -51,7 +51,7 @@ class RaspberryPiGpioManager : GpioManager {
 
         val outputPin = GpioFactory.getInstance().provisionDigitalOutputPin(pin, name, PinState.LOW)
         gpioDevices[pin] = outputPin
-        logger.debug("Provisioning device on pin: {}. Total devices provisioned: {}", pinName, gpioDevices.size)
+        logger.info("""Provisioning device named "$name" on Pin "$pinName". Total number of devices provisioned ${gpioDevices.size}""")
         return RaspberryPiDigitalOutput(outputPin)
     }
 }

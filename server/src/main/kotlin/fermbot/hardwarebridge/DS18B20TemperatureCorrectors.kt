@@ -20,17 +20,6 @@ import javax.inject.Singleton
  * @author Zachary Richards
  * @version 12/11/19
  */
-@Singleton
-object DefaultDS18B20TemperatureCorrector : TemperatureCorrector {
-    override val upperBound = 0.0.toC()
-    override val lowerBound = 30.0.toC()
-
-    private val correctorDelegate = DS18B20TemperatureCorrector(1.833333e-4, -6.666666e-3, -0.14, lowerBound, upperBound)
-
-    override fun invoke(rawTemp: Temperature): Temperature {
-        return correctorDelegate(rawTemp)
-    }
-}
 
 /**
  * Custom DS18B20 corrector defined by a, b, and c
@@ -51,7 +40,17 @@ class DS18B20TemperatureCorrector(val a: Double, val b: Double, val c: Double, o
         return temp
     }
 
+    override fun toString(): String {
+        return "DS18B20TemperatureCorrector(a=$a, b=$b, c=$c, validRange=($lowerBound..$upperBound)"
+    }
+
 }
+
+@Singleton
+val NoOpDs18b20TemperatureCorrector = DS18B20TemperatureCorrector(0.0, 1.0, 0.0, 0.0.toC(), 100.0.toC())
+
+val DefaultDS18B20TemperatureCorrector = DS18B20TemperatureCorrector(1.8333333e-4, -6.666666e-3, -0.14, 0.0.toC(), 30.0.toC())
+
 
 fun checkInBounds(rawTemp: Temperature, corrector: TemperatureCorrector) {
     require(rawTemp.get(Temperature.Unit.CELSIUS) in corrector.lowerBound.get(Temperature.Unit.CELSIUS)..corrector.upperBound.get(Temperature.Unit.CELSIUS))

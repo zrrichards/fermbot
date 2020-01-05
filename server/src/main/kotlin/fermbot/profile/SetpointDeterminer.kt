@@ -40,17 +40,7 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
 
     fun <T: Hydrometer> getSetpoint(hydrometer: Optional<T>): TemperatureSetpoint {
         if (isCurrentStageFulfilled(hydrometer)) {
-            val stageName = currentStage.stageDescription.defaultIfEmpty("$currentSetpointIndex")
-            val lastStageCompleted = currentSetpointIndex >= setpoints.lastIndex
-            if (lastStageCompleted) {
-                logger.warn("You are currently at the last setpoint and it has been completed. Continuing to hold temp constant at the current setpoint (${currentStage.tempSetpoint}). Is your batch done?")
-            } else {
-                logger.info("""Fermentation stage "$stageName" fulfilled. Moving to next stage""")
-            }
-
-            currentSetpointCompletion = currentSetpointCompletion.toNextStage()
-            fermentationMonitorTask.run()
-            setpointCompletionPersister.persist(currentSetpointCompletion)
+            advanceToNextSetpoint()
         }
         return currentStage
     }
@@ -104,12 +94,26 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
     }
 
     private fun SetpointCompletion.toNextStage(): SetpointCompletion {
-        val nextSetpoint = if (currentSetpointIndex == setpoints.lastIndex) {
+        val nextSetpoint = if (currentSetpointIndex >= setpoints.lastIndex) {
             null
         } else {
             setpoints[currentSetpointIndex + 1]
         }
         return SetpointCompletion(nextSetpoint, this.currentSetpointIndex + 1)
+    }
+
+    fun advanceToNextSetpoint() {
+        val stageName = currentStage.stageDescription.defaultIfEmpty("$currentSetpointIndex")
+        val lastStageCompleted = currentSetpointIndex >= setpoints.lastIndex
+        if (lastStageCompleted) {
+            logger.warn("You are currently at the last setpoint and it has been completed. Continuing to hold temp constant at the current setpoint (${currentStage.tempSetpoint}). Is your batch done?")
+        } else {
+            logger.info("""Fermentation stage "$stageName" fulfilled. Moving to next stage""")
+        }
+
+        currentSetpointCompletion = currentSetpointCompletion.toNextStage()
+        fermentationMonitorTask.run()
+        setpointCompletionPersister.persist(currentSetpointCompletion)
     }
 
     val currentStage

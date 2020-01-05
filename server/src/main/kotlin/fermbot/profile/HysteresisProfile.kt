@@ -42,7 +42,7 @@ class HysteresisProfile @Inject constructor(@Value("\${fermbot.hysteresis.lower:
 
         //If we don't have a thermometer, there's nothing we can do to measure the temperature so don't do anything for temp control
         if (!thermometer.isPresent) {
-            logger.debug("No thermometer present, heating mode is Off regardless of setpoint")
+            logger.warn("No thermometer present, heating mode is being set to Off regardless of setpoint")
             return HeatingMode.OFF
         }
 
