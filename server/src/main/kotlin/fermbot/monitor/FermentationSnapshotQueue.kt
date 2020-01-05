@@ -14,13 +14,16 @@ class FermentationSnapshotQueue(private val persister: FermentationSnapshotPersi
     private val queue = ArrayDeque<FermentationSnapshot>()
     private val logger = LoggerFactory.getLogger(FermentationSnapshotQueue::class.java)
 
+    val oldest: FermentationSnapshot
+        get() = queue.first
+
     fun add(snapshot: FermentationSnapshot) {
         queue.add(snapshot)
         persister.append(snapshot)
         prune()
     }
 
-    fun prune() {
+    private fun prune() {
         if (queue.isEmpty()) {
             return
         }

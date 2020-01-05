@@ -22,7 +22,7 @@ class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer,
 
         val currentTempString = bestThermometer.map { it.currentTemp.toStringF() }.orElse("None")
 
-        val desiredHeatingMode = hysteresisProfile.determineHeatingMode(setpoint.tempSetpoint, bestThermometer, currentHeatingMode)
+        val desiredHeatingMode = hysteresisProfile.determineHeatingMode(setpoint.temperature, bestThermometer, currentHeatingMode)
         if (currentHeatingMode != desiredHeatingMode) {
             logger.info("Current Setpoint: $setpoint. Current Temperature: $currentTempString")
             temperatureActuator.setHeatingMode(desiredHeatingMode)

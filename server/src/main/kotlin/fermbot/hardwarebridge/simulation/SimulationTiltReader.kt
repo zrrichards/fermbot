@@ -15,7 +15,6 @@ import java.util.*
 import javax.inject.Singleton
 
 @Singleton
-@Controller
 @Requires(env=[Environments.SIMULATION], property= FermbotProperties.isTiltEnabled, value="true")
 class SimulationTiltReader(private val refreshInterval: Duration = Duration.ofMillis(6)) : ThermoHydrometerReader {
 

@@ -53,7 +53,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "[\n\t{\n        \"tempSetpoint\": \"48F\",\n        \"duration\": \"PT140S\",\n        \"stageDescription\": \"Primary\",\n        \"includeRamp\": true\n\t},\n    {\n        \"tempSetpoint\": \"65F\",\n        \"duration\": \"PT50S\",\n        \"stageDescription\": \"Diacetyl Rest\",\n        \"includeRamp\": true\n    },\n    {\n        \"tempSetpoint\": \"34F\",\n        \"duration\": \"PT140S\",\n        \"stageDescription\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
+					"raw": "[\n\t{\n        \"temperature\": \"48F\",\n        \"duration\": \"PT140S\",\n        \"description\": \"Primary\",\n        \"includeRamp\": true\n\t},\n    {\n        \"temperature\": \"65F\",\n        \"duration\": \"PT50S\",\n        \"description\": \"Diacetyl Rest\",\n        \"includeRamp\": true\n    },\n    {\n        \"temperature\": \"34F\",\n        \"duration\": \"PT140S\",\n        \"description\": \"Cold Crash\",\n        \"includeRamp\": true\n    }\n]",
 					"options": {
 						"raw": {
 							"language": "json"

@@ -19,12 +19,12 @@ sealed class State {
 
     //needs to be sealed class instead of enum because these are self-referential
 
-    abstract val validNextStages: List<State>
+    abstract val validNextStates: List<State>
     abstract val name: String
 
     override fun toString() = name
 
-    fun isValidNextState(state: State) = (state == this || state in validNextStages)
+    fun isValidNextState(state: State) = (state == this || state in validNextStates)
 
     open fun persist() { /* do nothing by default */ }
 
@@ -32,26 +32,26 @@ sealed class State {
         override fun persist() {
         }
 
-        override val validNextStages = listOf(TESTING, READY)
+        override val validNextStates = listOf(TESTING, READY)
         override val name = "Pending Profile"
     }
 
     object READY: State() {
         override fun persist() {
         }
-        override val validNextStages = listOf(PENDING_PROFILE, RUNNING)
+        override val validNextStates = listOf(PENDING_PROFILE, RUNNING)
         override val name = "Ready"
     }
 
     object TESTING: State() {
-        override val validNextStages = listOf(PENDING_PROFILE)
+        override val validNextStates = listOf(PENDING_PROFILE)
         override val name = "Testing"
     }
 
     object RUNNING: State() {
         override fun persist() {
         }
-        override val validNextStages = listOf(PENDING_PROFILE, READY)
+        override val validNextStates = listOf(PENDING_PROFILE, READY)
         override val name = "Running"
     }
 }

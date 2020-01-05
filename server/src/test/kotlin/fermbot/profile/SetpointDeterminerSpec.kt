@@ -29,7 +29,7 @@ class SetpointDeterminerSpec {
     }
 
     @Test
-    fun `the initial profile stage is the first profile by default`() {
+    fun `the initial profile setpoint is the first profile by default`() {
         val profileController = SetpointDeterminer(gravityBasedLagerProfile, SetpointCompletionPersister(), mockk(relaxed=true))
         expectThat(profileController.currentSetpointIndex).isEqualTo(0)
     }

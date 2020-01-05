@@ -9,7 +9,6 @@ import fermbot.profile.FermbotProperties
 import fermbot.profile.FermentationProfileController
 import fermbot.toF
 import io.micronaut.context.annotation.Requires
-import io.micronaut.scheduling.annotation.Scheduled
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.*
@@ -28,7 +27,7 @@ class SimulationDs18b20Manager : ThermometerReader {
 
     var fermentationProfileController: FermentationProfileController? = null
 
-    var prevTemp = fermentationProfileController?.currentSetpoint?.tempSetpoint ?: 50.0.toF()
+    var prevTemp = fermentationProfileController?.currentSetpoint?.temperature ?: 50.0.toF()
     var prevHeatingMode = HeatingMode.OFF
 
     init {

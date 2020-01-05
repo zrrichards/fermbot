@@ -13,8 +13,6 @@ import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.io.File
-import java.nio.file.Paths
-import java.time.Duration
 import javax.inject.Inject
 
 /**
@@ -45,7 +43,7 @@ class FermentationProfilePersisterSpec {
     @Test
     fun `can append snapshot to file`() {
         val snapshot = FermentationSnapshot(temp = 48.0.toF(),currentSg=1.056, heatingMode = HeatingMode.OFF,
-                currentSetpointIndex=0, setpoint=49.5.toF(), stageDescription = "foo")
+                currentSetpointIndex=0, setpoint=49.5.toF(), description = "foo")
         persister.append(snapshot)
         expectThat(persister.readAll()).isEqualTo(listOf(snapshot))
     }

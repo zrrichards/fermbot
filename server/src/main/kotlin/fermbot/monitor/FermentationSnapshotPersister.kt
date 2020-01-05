@@ -1,7 +1,6 @@
 package fermbot.monitor
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fermbot.Temperature
 import fermbot.temperatureFromString
 import java.nio.file.Paths
@@ -9,9 +8,7 @@ import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.reflect.KClass
-import kotlin.reflect.KParameter
 import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.primaryConstructor
 
 /**
  * A mechanism for persisting and appending to rolling fermentation shapshot data
@@ -22,6 +19,7 @@ interface FermentationSnapshotPersister {
     fun append(snapshot: FermentationSnapshot)
     fun readAll(): List<FermentationSnapshot>
     fun clear()
+    fun readAsCsv(): List<String>
 }
 
 @Singleton
@@ -57,19 +55,23 @@ class FileBasedFermentationSnapshotPersister @Inject constructor(private val obj
     }
 
     override fun readAll(): List<FermentationSnapshot> {
-        val constructor = FermentationSnapshot::class.primaryConstructor
         /* List<String>
          * List<List<String>>
          * List<Map<String, String>
          * List<Map<Parameter, String>>
          * List<FermentationSnapshot>
          */
-        val lines = file.readLines()
-        check(lines[0].trim() == CSV_HEADER)
-        return lines.skipHeader().map {
+        return readAsCsv().skipHeader().map {
             fieldsList.zip(it.split(",")).toMap()
         }.map { transformParameters(it) }.map { objectMapper.convertValue(it, FermentationSnapshot::class.java) }
     }
+
+    override fun readAsCsv(): List<String> {
+        val lines = file.readLines()
+        check(lines[0].trim() == CSV_HEADER)
+        return lines
+    }
+
 
     private fun transformParameters(parameters: Map<String, String>) : Map<String, Any> {
         return parameters.mapValues {

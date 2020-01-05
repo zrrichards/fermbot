@@ -52,6 +52,13 @@ Send a POST request to "/test/full-hardware" to cycle through the heating/coolin
 
 That will cycle through each heating mode (heating/cooling/off) for 20 seconds, for three times (i.e. heating on for 20 seconds, cooling on for 20 seconds, then off for 20 seconds).
 
+## Terminology
+*State* - The current state of the fermbot machine (see Typical Workflow below)
+*Stage* - The current
+*Setpoint*
+*Profile* 
+*Heating Mode*
+*Heating Cooling Configuration*
 
 ##Typical Workflow:
 The Fermbot workflow can be visualized as a state machine with four states:
@@ -71,8 +78,19 @@ Below describes the API of the webserver portion of Fermbot. The front-end clien
 
 Right now the Fermbot only supports a single batch at a time. That may be changed in the future.
 
-###Getting current system status
-Issuing a GET request to `/status` will give the most up-to-date information about the system.
+### API Overview
+1. GET /state
+2. POST /profile
+3. GET /profile
+4. POST /start
+5. POST /pause
+6. POST /cancel
+7. POST /reset
+8. POST /test/full-hardware
+9. GET /snapshots
+10. GET /status
+11. POST /nextSetpoint
+
 
 ###Configuration of the current Fermentation Profile
 Here is an example of how to configure the following fermentation profile (here is a lager)

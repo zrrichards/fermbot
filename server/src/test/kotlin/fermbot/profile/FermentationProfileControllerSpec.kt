@@ -101,8 +101,8 @@ class FermentationProfileControllerSpec {
     }
 
     @Test
-    fun `can add a single fermentation profile stage`() {
-        val profileList = listOf(SpecificGravityBasedSetpoint(48.0.toF(), 1.023, "foo stage"))
+    fun `can add a single fermentation profile setpoint`() {
+        val profileList = listOf(SpecificGravityBasedSetpoint(48.0.toF(), 1.023, "foo setpoint"))
         val req = POST("/profile", profileList)
         val resp = client.toBlocking().exchange(req, String::class.java)
         expectThat(resp.status).isEqualTo(HttpStatus.OK)
@@ -113,10 +113,10 @@ class FermentationProfileControllerSpec {
     }
 
     @Test
-    fun `can add a mix of fermentation profile stages`() {
+    fun `can add a mix of fermentation profile setpoints`() {
         val profileList = listOf(
-                SpecificGravityBasedSetpoint(48.0.toF(), 1.023, "foo stage"),
-                TimeBasedSetpoint(62.0.toF(), Duration.ofDays(2), "foo stage", true)
+                SpecificGravityBasedSetpoint(48.0.toF(), 1.023, "foo setpoint"),
+                TimeBasedSetpoint(62.0.toF(), Duration.ofDays(2), "foo setpoint", true)
         )
         val req = POST("/profile", profileList)
         val resp = client.toBlocking().exchange(req, String::class.java)
@@ -132,20 +132,20 @@ class FermentationProfileControllerSpec {
         val json =
     """[
             {
-                "tempSetpoint": "48F",
+                "temperature": "48F",
                 "untilSg": 1.023,
-                "stageDescription": "Primary"
+                "description": "Primary"
             },
             {
-                "tempSetpoint": "62F",
+                "temperature": "62F",
                 "duration": "P2D",
-                "stageDescription": "Diacetyl Rest",
+                "description": "Diacetyl Rest",
                 "includeRamp": true
             },
             {
-                "tempSetpoint": "34F",
+                "temperature": "34F",
                 "duration": "P14D",
-                "stageDescription": "Cold Crash",
+                "description": "Cold Crash",
                 "includeRamp": true
             }
         ]""".trimIndent()

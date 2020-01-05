@@ -92,7 +92,7 @@ class StateController @Inject constructor (private val fermentationProfileContro
             State.READY -> reset()
             State.RUNNING -> cancel()
             State.PENDING_PROFILE -> { /*do nothing */ }
-            else -> { throw IllegalStateException("Current stage: $currentState") }
+            else -> { throw IllegalStateException("Current state: $currentState") }
         }
     }
 }

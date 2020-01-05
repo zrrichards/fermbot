@@ -17,10 +17,10 @@ import fermbot.Temperature
 import fermbot.brewfather.Brewfather
 import fermbot.hardwarebridge.ThermoHydrometerReader
 import fermbot.hardwarebridge.ThermometerReader
-import fermbot.orchestrator.SystemStatistics
 import fermbot.profile.FermentationProfileController
-import io.micronaut.scheduling.annotation.Scheduled
 import org.slf4j.LoggerFactory
+import java.time.Duration
+import java.time.Instant
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,12 +34,12 @@ import kotlin.math.round
 @Singleton
 class FermentationMonitorTask @Inject constructor(private val brewfather: Optional<Brewfather>, private val thermoHydrometerReader: ThermoHydrometerReader, private val thermometerReader: ThermometerReader, private val persister: FermentationSnapshotPersister) : Runnable {
 
-    val snapshots: List<FermentationSnapshot>
-        get() = queue.getAll()
+    val allSnapshots: List<String>
+        get() = persister.readAsCsv()
 
     private val logger = LoggerFactory.getLogger(FermentationMonitorTask::class.java)
 
-    private val queue = FermentationSnapshotQueue(persister)
+    private val queue = FermentationSnapshotQueue(persister, Duration.ofHours(7))
 
     var fermentationProfileController: FermentationProfileController? = null
 
@@ -88,8 +88,8 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
                 temp = currentTemp,
                 currentSetpointIndex = fermentationProfileController!!.currentSetpointIndex,
                 heatingMode = fermentationProfileController!!.getCurrentHeatingMode(),
-                setpoint = fermentationProfileController!!.currentSetpoint.tempSetpoint,
-                stageDescription = fermentationProfileController!!.currentSetpoint.stageDescription
+                setpoint = fermentationProfileController!!.currentSetpoint.temperature,
+                description = fermentationProfileController!!.currentSetpoint.description
             ))
         }
 
@@ -99,7 +99,7 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
                 val tempOptional = Optional.ofNullable(currentTemp)
                 val sgOptional = Optional.ofNullable(currentSg)
 
-                val commentString = """Current Setpoint: ${fermentationProfileController?.currentSetpoint?.tempSetpoint}\nCurrent Heating Mode: ${fermentationProfileController?.getCurrentHeatingMode()}"""
+                val commentString = """Current Setpoint: ${fermentationProfileController?.currentSetpoint?.temperature}\nCurrent Heating Mode: ${fermentationProfileController?.getCurrentHeatingMode()}"""
 
                 val result = brewfather.get().updateBatchDetails(tempOptional, sgOptional, commentString)
                 if (result.isSuccessful()) {
@@ -119,6 +119,18 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
     fun clearSnapshots() {
         queue.clear()
         persister.clear()
+    }
+
+    fun averageGravityFromPast(within: Duration): Double {
+        val timestamp = Instant.now() - within
+        val range = if (queue.oldest.timestamp > timestamp) {
+            logger.warn("Oldest timestamp in memorty is ${queue.oldest.timestamp} which is more recent than desired timestamp of $timestamp. Ignoring older values")
+            queue.oldest.timestamp
+        } else {
+            timestamp
+        }
+
+        return queue.getAll().asReversed().takeWhile { it.timestamp >= range }.mapNotNull { it.currentSg }.average()
     }
 }
 

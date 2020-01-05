@@ -7,6 +7,7 @@ import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.FermentationMonitorTask
 import fermbot.monitor.HeatingMode
 import io.micronaut.context.env.Environment
+import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
@@ -42,7 +43,7 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
     private val BREWFATHER_UPLOAD_PERIOD = Duration.ofSeconds(15 * 60 + 10) //15 minutes + a few seconds as a buffer
 
     val currentSetpoint: TemperatureSetpoint
-        get() = setpointDeterminer.currentStage
+        get() = setpointDeterminer.currentSetpoint
 
     private val currentProfile = profilePersister.loadOrElse(mutableListOf()).toMutableList()
 
@@ -66,8 +67,10 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
         return currentProfile
     }
 
-    @Get("/snapshots")
-    fun getSnapshots() = fermentationMonitorTask.snapshots
+    @Get("/snapshots", produces=[MediaType.TEXT_PLAIN])
+    fun getSnapshots(): String {
+        return fermentationMonitorTask.allSnapshots.joinToString("\n")
+    }
 
     fun setProfile(setpoints: List<TemperatureSetpoint>) {
         require(setpoints.isNotEmpty()) { "Must pass at least one Temperature setpoint" }
@@ -92,8 +95,8 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
         }
 
         val profileAsString = StringBuilder()
-        currentProfile.forEachIndexed { i, currentStage ->
-            profileAsString.append("\t\t\t\t${padToWidth(i + 1, currentProfile.size.numDigits())}: $currentStage\n") //display as one-based
+        currentProfile.forEachIndexed { i, currentSetpoint ->
+            profileAsString.append("\t\t\t\t${padToWidth(i + 1, currentProfile.size.numDigits())}: $currentSetpoint\n") //display as one-based
         }
         return profileAsString.toString()
     }
@@ -102,7 +105,7 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
     @Get("/status")
     fun status() : Any {
         return if (::setpointDeterminer.isInitialized) {
-            setpointDeterminer.getRemainingStageInfo()
+            setpointDeterminer.getRemainingSetpointInfo()
         } else {
             "No status to report. Fermentation not running"
         }

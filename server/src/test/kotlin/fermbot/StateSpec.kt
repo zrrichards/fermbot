@@ -15,7 +15,7 @@ import strikt.assertions.isTrue
 class StateSpec {
 
     @Test
-    fun `valid next stages from PENDING_PROFILE`() {
+    fun `valid next states from PENDING_PROFILE`() {
         val sut = PENDING_PROFILE
         expectThat(sut.name).isEqualTo("Pending Profile")
         val expectedNextStates = listOf(PENDING_PROFILE, TESTING, READY)
@@ -23,7 +23,7 @@ class StateSpec {
     }
 
     @Test
-    fun `valid next stages from READY`() {
+    fun `valid next states from READY`() {
         val sut = READY
         expectThat(sut.name).isEqualTo("Ready")
         val expectedNextStates = listOf(READY, RUNNING, PENDING_PROFILE)
@@ -32,7 +32,7 @@ class StateSpec {
     }
 
     @Test
-    fun `valid next stages from TESTING`() {
+    fun `valid next states from TESTING`() {
         val sut = TESTING
         expectThat(sut.name).isEqualTo("Testing")
         val expectedNextStates = listOf(TESTING, PENDING_PROFILE)
@@ -40,7 +40,7 @@ class StateSpec {
     }
 
     @Test
-    fun `valid next stages from RUNNING`() {
+    fun `valid next states from RUNNING`() {
         val sut = RUNNING
         expectThat(sut.name).isEqualTo("Running")
         val expectedNextStates = listOf(PENDING_PROFILE, RUNNING, READY)
