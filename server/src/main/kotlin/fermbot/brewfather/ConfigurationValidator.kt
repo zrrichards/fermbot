@@ -1,6 +1,7 @@
 package fermbot.brewfather
 
 import fermbot.profile.BeanDefinitions
+import fermbot.profile.Environments
 import fermbot.profile.FermbotProperties
 import io.micronaut.context.annotation.Context
 import io.micronaut.context.env.Environment
@@ -30,7 +31,13 @@ class ConfigurationValidator @Inject constructor (private val environment: Envir
         } else {
             true
         }
+
+        if (environmentActive(Environments.RASPBERRY_PI) && environmentActive(Environments.SIMULATION)) {
+            throw RuntimeException("Cannot use simualtion mode while on raspberry pi")
+        }
     }
+
+    private fun environmentActive(name: String) = name in environment.activeNames
 
     fun isUsable() = isUsable
 }

@@ -47,6 +47,8 @@ class RaspberryPiTiltReader : ThermoHydrometerReader {
     @Value("\${fermbot.pytilt-script-path}")
     private lateinit var pathToPytiltScript: String
 
+    private var lastReadTilt: Optional<ThermoHydrometer> = Optional.empty()
+
     override fun readTilt(): Optional<ThermoHydrometer> {
         val pytiltScript = "$pathToPytiltScript/pytilt.py"
         val process = ProcessBuilder("python", pytiltScript).start()
@@ -54,12 +56,15 @@ class RaspberryPiTiltReader : ThermoHydrometerReader {
         if (!exited || process.exitValue() != 0) {
             val error = process.errorStream.bufferedReader().use(BufferedReader::readText)
             val fileExists = File(pytiltScript).exists()
-            throw RuntimeException("Unable to read Tilt: $error, Current working directory: ${getWorkingDirectory()}. Attempted path to pytilt script: $pathToPytiltScript. File exists? $fileExists")
+            logger.error("Unable to read Tilt: $error, Current working directory: ${getWorkingDirectory()}. Attempted path to pytilt script: $pathToPytiltScript. File exists? $fileExists")
+            logger.warn("Attempting to recover by using previous read tilt value of $lastReadTilt")
+            return lastReadTilt
         }
         val objectMapper = ObjectMapper()
         val tilt = objectMapper.readValue(process.inputStream, Tilt::class.java)
         logger.debug("Read Tilt: {}", tilt)
-        return Optional.of(tilt)
+        lastReadTilt = Optional.of(tilt)
+        return lastReadTilt
     }
 
     private fun getWorkingDirectory(): String {

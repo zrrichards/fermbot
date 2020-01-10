@@ -5,6 +5,7 @@ import fermbot.hardwarebridge.ThermoHydrometerReader
 import fermbot.hardwarebridge.ThermometerReader
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.FermentationMonitorTask
+import fermbot.monitor.HeatingMode
 import org.slf4j.LoggerFactory
 
 class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer, private val hydrometerReader: ThermoHydrometerReader, private val hysteresisProfile: HysteresisProfile, private val thermometerReader: ThermometerReader, private val temperatureActuator: TemperatureActuator, private val fermentationMonitorTask: FermentationMonitorTask) : Runnable {
@@ -22,7 +23,12 @@ class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer,
 
         val currentTempString = bestThermometer.map { it.currentTemp.toStringF() }.orElse("None")
 
-        val desiredHeatingMode = hysteresisProfile.determineHeatingMode(setpoint.temperature, bestThermometer, currentHeatingMode)
+        val desiredHeatingMode = if (bestThermometer.isPresent) {
+            hysteresisProfile.determineHeatingMode(setpoint.temperature, bestThermometer.get(), currentHeatingMode)
+        } else {
+            logger.warn("Thermometer not present. Heating mode being set to off")
+            HeatingMode.OFF
+        }
         if (currentHeatingMode != desiredHeatingMode) {
             logger.info("Current Setpoint: $setpoint. Current Temperature: $currentTempString")
             temperatureActuator.setHeatingMode(desiredHeatingMode)

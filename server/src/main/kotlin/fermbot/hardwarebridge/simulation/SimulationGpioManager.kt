@@ -35,7 +35,7 @@ class SimulationGpioManager : GpioManager {
 
 class SimulationDigitalOutputDevice : DigitalOutput {
 
-    var isStateHigh = false
+    private var isStateHigh = true
 
     override fun setHigh() {
         isStateHigh = true

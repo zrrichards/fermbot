@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
+import fermbot.profile.TemperatureWindow
 import javax.inject.Singleton
 import kotlin.math.sign
 
@@ -45,6 +46,8 @@ data class Temperature(val value: Double, val unit: Unit) {
     operator fun compareTo(other: Temperature) = (asF() - other.asF()).sign.toInt()
 
     operator fun plus(other: Temperature) = (this.asF() + other.asF()).toF()
+
+    fun toTemperatureWindow() = TemperatureWindow(value, unit)
 }
 
 fun String.toTemperatureUnit() = when (this) {

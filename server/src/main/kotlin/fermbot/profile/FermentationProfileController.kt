@@ -142,7 +142,7 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
             temperatureControlFuture = taskScheduler.scheduleAtFixedRate(duration, duration, temperatureControlTask)
             fermentationMonitorFuture = taskScheduler.scheduleAtFixedRate(duration, duration, fermentationMonitorTask)
         } else {
-            temperatureControlFuture = taskScheduler.scheduleAtFixedRate(Duration.ofMinutes(10), Duration.ofMinutes(10), temperatureControlTask)
+            temperatureControlFuture = taskScheduler.scheduleAtFixedRate(Duration.ofMinutes(1), Duration.ofMinutes(1), temperatureControlTask)
             fermentationMonitorFuture = taskScheduler.scheduleAtFixedRate(BREWFATHER_UPLOAD_PERIOD, BREWFATHER_UPLOAD_PERIOD, fermentationMonitorTask)
         }
     }

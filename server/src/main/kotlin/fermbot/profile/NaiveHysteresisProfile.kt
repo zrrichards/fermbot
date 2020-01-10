@@ -5,7 +5,6 @@ import fermbot.Thermometer
 import fermbot.hardwarebridge.tempcontrol.HeaterCoolerConfiguration
 import fermbot.monitor.HeatingMode
 import fermbot.toTemperatureUnit
-import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Value
 import io.micronaut.core.convert.ConversionContext
 import io.micronaut.core.convert.TypeConverter
@@ -15,18 +14,23 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.sign
 
-@Singleton
-class HysteresisProfile @Inject constructor(@Value("\${fermbot.hysteresis.lower:1F}") val lowerThreshold: TemperatureWindow, @Value("\${fermbot.hysteresis.upper:1F}") val upperThreshold: TemperatureWindow, private val heatingCoolingConfiguration: HeaterCoolerConfiguration) {
+interface HysteresisProfile {
+    val lowerThreshold: TemperatureWindow
+    val upperThreshold: TemperatureWindow
 
-    private val logger = LoggerFactory.getLogger(HysteresisProfile::class.java)
+    fun determineHeatingMode(setpoint: Temperature, thermometer: Thermometer, currentHeatingMode: HeatingMode): HeatingMode
+}
+
+//@Singleton
+class NaiveHysteresisProfile constructor(@Value("\${fermbot.hysteresis.lower:1F}") override val lowerThreshold: TemperatureWindow, @Value("\${fermbot.hysteresis.upper:1F}") override val upperThreshold: TemperatureWindow, private val heatingCoolingConfiguration: HeaterCoolerConfiguration) : HysteresisProfile {
+
+    private val logger = LoggerFactory.getLogger(NaiveHysteresisProfile::class.java)
 
     val totalWindow = lowerThreshold + upperThreshold
 
     //TODO make these configurable but default values can't be used with @inject constructors
     val min: TemperatureWindow = lowerThreshold * 1.2
     val max: TemperatureWindow = upperThreshold * 1.2
-
-    //TODO calculate power consumption based on known wattage
 
     init {
         require (lowerThreshold != ZERO) { "Lower threshold cannot be zero" }
@@ -38,16 +42,16 @@ class HysteresisProfile @Inject constructor(@Value("\${fermbot.hysteresis.lower:
     }
 
 
-    fun determineHeatingMode(setpoint: Temperature, thermometer: Optional<Thermometer>, currentHeatingMode: HeatingMode): HeatingMode {
+    override fun determineHeatingMode(setpoint: Temperature, thermometer: Thermometer, currentHeatingMode: HeatingMode): HeatingMode {
 
         //If we don't have a thermometer, there's nothing we can do to measure the temperature so don't do anything for temp control
-        if (!thermometer.isPresent) { //todo move Optional to caller. don't make this class check if thermometer is present
-            logger.warn("No thermometer present, heating mode is being set to Off regardless of setpoint")
-            return HeatingMode.OFF
-        }
+//        if (!thermometer.isPresent) { //todo move Optional to caller. don't make this class check if thermometer is present
+//            logger.warn("No thermometer present, heating mode is being set to Off regardless of setpoint")
+//            return HeatingMode.OFF
+//        }
 
         //todo this is a naive implementation
-        val currentTemp = thermometer.get().currentTemp
+        val currentTemp = thermometer.currentTemp
         val desiredHeatingMode = when(getHysteresisStatus(setpoint, currentTemp)) {
             HysteresisStatus.MAX -> HeatingMode.COOLING
             HysteresisStatus.ABOVE ->  when (currentHeatingMode) {
@@ -87,7 +91,7 @@ enum class HysteresisStatus {
     MIN
 }
 
-fun symmetricHysteresisProfile(window: TemperatureWindow, configuration: HeaterCoolerConfiguration) = HysteresisProfile(window, window, configuration)
+fun symmetricNaiveHysteresisProfile(window: TemperatureWindow, configuration: HeaterCoolerConfiguration) = NaiveHysteresisProfile(window, window, configuration)
 
 operator fun Temperature.minus(window: TemperatureWindow): Temperature {
     return Temperature(this.value - window.get(this.unit), this.unit)

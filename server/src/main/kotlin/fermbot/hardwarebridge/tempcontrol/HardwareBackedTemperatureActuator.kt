@@ -94,12 +94,9 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named(BeanDef
             }
         }
 
-        //this can only happen due to a programming error but check anyway
-        if (heater.isEnabled() && cooler.isEnabled()) {
-            heater.get().disable()
-            cooler.get().disable()
-            throw IllegalStateException("Both Heater and cooler enabled simultaneously. Disabling both. This is a programming error. Please report this issue on github immediately")
-        }
+        //this can only happen due to an error with this software or the raspberry pi library but check anyway
+        check(determineHeatingModeFromHardware() == heatingMode) { "Something went wrong. Heating mode not updated to $heatingMode" }
+
 
         val now = Instant.now()
         val elapsed = Duration.between(heatingModeLastChanged, now)

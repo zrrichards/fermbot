@@ -82,7 +82,7 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
         }
 
         if (fermentationProfileController != null) {
-            output.append("Heating Mode[${fermentationProfileController?.getCurrentHeatingMode()}")
+            output.append("Heating Mode[${fermentationProfileController?.getCurrentHeatingMode()}]")
         }
 
         if (output.isNotEmpty()) {
