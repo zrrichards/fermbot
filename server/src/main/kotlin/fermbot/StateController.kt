@@ -1,5 +1,6 @@
 package fermbot
 
+import fermbot.brewfather.ConfigurationValidator
 import fermbot.monitor.FermentationMonitorTask
 import fermbot.profile.FermentationProfileController
 import fermbot.profile.Persister
@@ -21,7 +22,7 @@ import javax.inject.Inject
  */
 @Context
 @Controller("/")
-class StateController @Inject constructor (private val fermentationProfileController: FermentationProfileController) {
+class StateController @Inject constructor (private val fermentationProfileController: FermentationProfileController, private val configurationValidator: ConfigurationValidator) {
 
     private val logger = LoggerFactory.getLogger(StateController::class.java)
 
@@ -31,12 +32,18 @@ class StateController @Inject constructor (private val fermentationProfileContro
     fun getCurrentState() = currentState
 
     init {
-        if (fermentationProfileController.isProfileSet()) {
-            currentState = State.READY
-        } else {
+        if (!configurationValidator.isUsable()) {
             currentState = State.PENDING_PROFILE
+            returnToPendingProfile()
+            logger.warn("Configuration is not usable for fermentation. See message above. Fermbot is in test only mode")
+        } else {
+            if (fermentationProfileController.isProfileSet()) {
+                currentState = State.READY
+            } else {
+                currentState = State.PENDING_PROFILE
+            }
+            logger.info("Initializing state controller. Current state: $currentState")
         }
-        logger.info("Initializing state controller. Current state: $currentState")
     }
 
     @Post("/profile")
@@ -76,6 +83,9 @@ class StateController @Inject constructor (private val fermentationProfileContro
     }
 
     private fun checkState(operation: String, desiredState: State) {
+        check(configurationValidator.isUsable()) {
+            "Fermbot is not in a configuration that supports monitoring. Operation not permitted"
+        }
         check(currentState == desiredState)  {
             "$operation can only be called when in the ${desiredState.name} state. Current state: $currentState"
         }
