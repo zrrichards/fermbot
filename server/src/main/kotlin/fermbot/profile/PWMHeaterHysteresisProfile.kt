@@ -31,9 +31,9 @@ class PWMHeaterHysteresisProfile @Inject constructor(@Value("\${fermbot.hysteres
 
     init {
         logger.info("Initializing Pulse Width Modulated Heating Hysteresis profile. lowerThreshold=$lowerThreshold, upperThreshold=$upperThreshold, minimumOnTime=$minimumOnTime, minimumOffTime=$minimumOffTime")
-        check(!heatingCoolingConfiguration.canUseHeatingMode(COOLING)) {
-            "Pulse Width Modulation not supported with cooling enabled"
-        }
+//        check(!heatingCoolingConfiguration.canUseHeatingMode(COOLING)) {
+//            "Pulse Width Modulation not supported with cooling enabled"
+//        }
     }
 
     /**

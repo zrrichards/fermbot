@@ -25,11 +25,13 @@ import javax.inject.Singleton
  */
 @Singleton
 @Requires(env=[Environments.RASPBERRY_PI], property= FermbotProperties.isDs18b20Enabled, value="true")
-class RaspberryPiDS18B20Manager @Inject constructor(private val corrector: TemperatureCorrector) : ThermometerReader {
+class RaspberryPiDS18B20Manager: ThermometerReader {
 
     private val w1master = W1Master()
 
     private val logger = LoggerFactory.getLogger(RaspberryPiDS18B20Manager::class.java)
+
+    private val corrector = NoOpDs18b20TemperatureCorrector
 
     init {
         "Initializing: ${this.javaClass.simpleName}"

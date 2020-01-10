@@ -51,7 +51,7 @@ def monitor_tilt(sock):
             if beacon['uuid'] in TILTS.keys():
                 data={
                     'color': TILTS[beacon['uuid']],
-                    'currentTemp': beacon['major'],
+                    'temp': beacon['major'],
                     'specificGravity': beacon['minor'] / 1000.0
                 }
                 return json.dumps(data)

@@ -44,5 +44,5 @@ class SimulationTiltReader(private val refreshInterval: Duration = Duration.ofMi
         tilt = createTilt(nextValue)
     }
 
-    private fun createTilt(nextValue: Double): Optional<ThermoHydrometer> = Optional.of(Tilt(color = TiltColors.BLACK, specificGravity = nextValue, rawTemp = 45.2))
+    private fun createTilt(nextValue: Double): Optional<ThermoHydrometer> = Optional.of(Tilt(color = TiltColors.BLACK, specificGravity = nextValue, temp = 45.2))
 }

@@ -1,5 +1,6 @@
 package fermbot.orchestrator
 
+import fermbot.hardwarebridge.ThermoHydrometerReader
 import fermbot.hardwarebridge.ThermometerReader
 import fermbot.hardwarebridge.tempcontrol.HeaterCoolerConfiguration
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
@@ -20,7 +21,7 @@ import javax.inject.Inject
  * @version 12/22/19
  */
 @Controller("/test")
-class HardwareTester @Inject constructor(private val temperatureActuator: TemperatureActuator, private val thermometerManager: ThermometerReader, private val heaterCoolerConfiguration: HeaterCoolerConfiguration) {
+class HardwareTester @Inject constructor(private val temperatureActuator: TemperatureActuator, private val thermometerManager: ThermometerReader, private val heaterCoolerConfiguration: HeaterCoolerConfiguration, private val hydrometerReader: ThermoHydrometerReader) {
 
     private val logger = LoggerFactory.getLogger(HardwareTester::class.java)
 
@@ -65,9 +66,21 @@ class HardwareTester @Inject constructor(private val temperatureActuator: Temper
 
             temperatureActuator.setHeatingMode(modeToTest)
             val thermometer = thermometerManager.getDevices()
-            thermometer.ifPresent {
-                logger.info("Thermometer (id=${it.id}) is reading: ${it.currentTemp.asF()}F")
+            if (thermometer.isPresent) {
+                val it = thermometer.get()
+                logger.info("Thermometer (id=${it.id}) is reading: ${it.currentTemp.asF()}F. timestamp: ${it.timestamp}")
+            } else {
+                logger.info("Thermometer not present")
             }
+
+            val tilt = hydrometerReader.readTilt()
+            if (tilt.isPresent) {
+                val it = tilt.get()
+                logger.info("Tilt: $it")
+            } else {
+                logger.info("Tilt not present")
+            }
+
             logger.info("End of iteration ${currentRep + 1}/$reps. Pausing for $stepDuration\n")
             Thread.sleep(stepDuration.toMillis())
         }

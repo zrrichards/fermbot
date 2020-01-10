@@ -27,6 +27,7 @@ import java.io.File
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.io.readText
 
@@ -36,7 +37,7 @@ import kotlin.io.readText
  */
 @Singleton
 @Requires(env=[Environments.RASPBERRY_PI], property= FermbotProperties.isTiltEnabled, value="true")
-class RaspberryPiTiltReader : ThermoHydrometerReader {
+class RaspberryPiTiltReader @Inject constructor(private val objectMapper: ObjectMapper) : ThermoHydrometerReader {
 
     private val logger = LoggerFactory.getLogger(RaspberryPiTiltReader::class.java)
 
@@ -49,6 +50,7 @@ class RaspberryPiTiltReader : ThermoHydrometerReader {
 
     private var lastReadTilt: Optional<ThermoHydrometer> = Optional.empty()
 
+    //TODO add logic to give up after a certain amount of time and return previous value
     override fun readTilt(): Optional<ThermoHydrometer> {
         val pytiltScript = "$pathToPytiltScript/pytilt.py"
         val process = ProcessBuilder("python", pytiltScript).start()
@@ -60,7 +62,6 @@ class RaspberryPiTiltReader : ThermoHydrometerReader {
             logger.warn("Attempting to recover by using previous read tilt value of $lastReadTilt")
             return lastReadTilt
         }
-        val objectMapper = ObjectMapper()
         val tilt = objectMapper.readValue(process.inputStream, Tilt::class.java)
         logger.debug("Read Tilt: {}", tilt)
         lastReadTilt = Optional.of(tilt)

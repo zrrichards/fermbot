@@ -2,6 +2,7 @@ package fermbot.hardwarebridge
 
 import fermbot.Temperature
 import fermbot.toC
+import io.micronaut.context.annotation.Bean
 import org.slf4j.LoggerFactory
 import javax.inject.Singleton
 
@@ -31,7 +32,6 @@ class DS18B20TemperatureCorrector(val a: Double, val b: Double, val c: Double, o
 
 }
 
-@Singleton
 val NoOpDs18b20TemperatureCorrector = DS18B20TemperatureCorrector(0.0, 1.0, 0.0, 0.0.toC(), 100.0.toC())
 
 /**
