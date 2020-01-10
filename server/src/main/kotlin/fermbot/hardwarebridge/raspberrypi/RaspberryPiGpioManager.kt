@@ -22,7 +22,7 @@ class RaspberryPiGpioManager : GpioManager {
 
     private var isShutDown = false
 
-    private val gpioDevices = mutableMapOf<Pin, GpioPinDigitalOutput>()
+    private val gpioDevices = mutableMapOf<Pin, GpioPinDigitalOutputDevice>()
 
     init {
         logger.debug("Initializing Raspberry Pi GPIO Manager")
@@ -33,15 +33,18 @@ class RaspberryPiGpioManager : GpioManager {
         isShutDown = true
         logger.info("Shutting down GPIO manager")
         gpioDevices.forEach {
-            logger.info("Shutting down device on pin: {}", it.key.name)
-            it.value.low()
-            GpioFactory.getInstance().unprovisionPin(it.value)
+            logger.info("Shutting down device on pin: ${it.key.name}. Setting state to ${it.value.inactiveState}")
+            when (it.value.inactiveState) {
+                PinState.LOW -> it.value.pin.low()
+                PinState.HIGH -> it.value.pin.high()
+            }
+            GpioFactory.getInstance().unprovisionPin(it.value.pin)
         }
         gpioDevices.clear()
         GpioFactory.getInstance().shutdown()
     }
 
-    override fun provisionDigitalOutputDevice(pinName: String, name: String): DigitalOutput {
+    override fun provisionActiveLowDigitalOutput(pinName: String, name: String): DigitalOutput {
         check (!isShutDown)
         val pin = RaspiPin.getPinByName(pinName) ?: throw IllegalArgumentException("Unrecognized Pin named $pinName. Please see the README for valid values")
 
@@ -49,9 +52,12 @@ class RaspberryPiGpioManager : GpioManager {
             "Device already provisioned on pin $pinName. Please select a different pin"
         }
 
-        val outputPin = GpioFactory.getInstance().provisionDigitalOutputPin(pin, name, PinState.LOW)
-        gpioDevices[pin] = outputPin
-        logger.info("""Provisioning device named "$name" on Pin "$pinName". Total number of devices provisioned ${gpioDevices.size}""")
+        val outputPin = GpioFactory.getInstance().provisionDigitalOutputPin(pin, name, PinState.HIGH)
+        gpioDevices[pin] = GpioPinDigitalOutputDevice(outputPin, PinState.HIGH)
+        logger.info("""Provisioning ACTIVE LOW device named "$name" on Pin "$pinName". Total number of devices provisioned ${gpioDevices.size}""")
         return RaspberryPiDigitalOutput(outputPin)
     }
+
 }
+
+data class GpioPinDigitalOutputDevice(val pin: GpioPinDigitalOutput, val inactiveState: PinState)

@@ -1,6 +1,6 @@
 package fermbot
 
-import fermbot.hardwarebridge.tempcontrol.ActiveHighDigitalOutputDevice
+import fermbot.hardwarebridge.tempcontrol.DigitalOutputDevice
 import fermbot.hardwarebridge.tempcontrol.HardwareBackedTemperatureActuator
 import fermbot.hardwarebridge.tempcontrol.HeaterCoolerConfiguration
 import fermbot.monitor.HeatingMode
@@ -46,7 +46,7 @@ class TemperatureActuatorSpec {
     }
 }
 
-class InMemoryActiveHighDigitalOutputDevice : ActiveHighDigitalOutputDevice {
+class InMemoryDigitalOutputDevice : DigitalOutputDevice {
 
     private var isEnabled = false
 
@@ -61,8 +61,8 @@ class InMemoryActiveHighDigitalOutputDevice : ActiveHighDigitalOutputDevice {
     }
 }
 
-private fun spyDevice(): Optional<ActiveHighDigitalOutputDevice> {
-    return Optional.of(spyk(InMemoryActiveHighDigitalOutputDevice()))
+private fun spyDevice(): Optional<DigitalOutputDevice> {
+    return Optional.of(spyk(InMemoryDigitalOutputDevice()))
 }
 
 //notes on how to mock micronaut bean factory

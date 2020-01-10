@@ -15,7 +15,7 @@ import javax.inject.Singleton
  * Its primary role is to ensure that the heater and cooler are both not enabled at the same time.
  */
 @Singleton
-class HardwareBackedTemperatureActuator @Inject constructor(@param:Named(BeanDefinitions.HEATER) private val heater: Optional<ActiveHighDigitalOutputDevice>, @param:Named(BeanDefinitions.COOLER) private val cooler: Optional<ActiveHighDigitalOutputDevice>, private val heatingCoolingConfiguration: HeaterCoolerConfiguration) : TemperatureActuator {
+class HardwareBackedTemperatureActuator @Inject constructor(@param:Named(BeanDefinitions.HEATER) private val heater: Optional<DigitalOutputDevice>, @param:Named(BeanDefinitions.COOLER) private val cooler: Optional<DigitalOutputDevice>, private val heatingCoolingConfiguration: HeaterCoolerConfiguration) : TemperatureActuator {
 
     private var heatingModeLastChanged = Instant.now()
 
@@ -45,7 +45,7 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named(BeanDef
 
     private val logger = LoggerFactory.getLogger(HardwareBackedTemperatureActuator::class.java)
 
-    private fun Optional<ActiveHighDigitalOutputDevice>.isEnabled() = map { it.isEnabled() }.orElse(false)
+    private fun Optional<DigitalOutputDevice>.isEnabled() = map { it.isEnabled() }.orElse(false)
 
     init {
         check (currentHeatingMode == HeatingMode.OFF) { "Heating mode should initially be off. This is a bug" }

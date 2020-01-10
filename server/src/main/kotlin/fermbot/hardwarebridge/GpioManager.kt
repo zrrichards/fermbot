@@ -9,9 +9,9 @@ interface GpioManager {
 
     /**
      * Provisions the digital with the given name and on the given pin. The
-     * default logic value is LOW
+     * default logic value is High
      */
-    fun provisionDigitalOutputDevice(pinName: String, name: String): DigitalOutput
+    fun provisionActiveLowDigitalOutput(pinName: String, name: String): DigitalOutput
 
 
     /**

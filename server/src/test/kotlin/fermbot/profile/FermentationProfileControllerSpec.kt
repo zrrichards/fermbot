@@ -6,6 +6,7 @@ import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.FermentationMonitorTask
 import fermbot.monitor.HeatingMode
 import fermbot.toF
+import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Replaces
 import io.micronaut.context.env.Environment
 import io.micronaut.core.type.Argument
@@ -36,6 +37,7 @@ import javax.inject.Singleton
  */
 //@Disabled
 @MicronautTest
+@Property(name="fermbot.tilt.enabled", value="true")
 class FermentationProfileControllerSpec {
 
     @Inject

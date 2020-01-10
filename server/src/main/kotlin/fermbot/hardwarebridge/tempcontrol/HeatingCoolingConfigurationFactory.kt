@@ -12,7 +12,7 @@ class HeatingCoolingConfigurationFactory {
 
     @Bean
     @Singleton
-    fun determineHeatingCoolingConfiguration(@Named(BeanDefinitions.HEATER) heater: Optional<ActiveHighDigitalOutputDevice>, @Named(BeanDefinitions.COOLER) cooler: Optional<ActiveHighDigitalOutputDevice>): HeaterCoolerConfiguration {
+    fun determineHeatingCoolingConfiguration(@Named(BeanDefinitions.HEATER) heater: Optional<DigitalOutputDevice>, @Named(BeanDefinitions.COOLER) cooler: Optional<DigitalOutputDevice>): HeaterCoolerConfiguration {
         return if (heater.isPresent) {
             if (cooler.isPresent) {
                 HeaterCoolerConfiguration.BOTH

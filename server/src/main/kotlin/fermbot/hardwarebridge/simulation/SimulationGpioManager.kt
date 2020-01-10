@@ -21,7 +21,7 @@ class SimulationGpioManager : GpioManager {
 
     private val gpioDevices = mutableMapOf<String, SimulationDigitalOutputDevice>()
 
-    override fun provisionDigitalOutputDevice(pinName: String, name: String): DigitalOutput {
+    override fun provisionActiveLowDigitalOutput(pinName: String, name: String): DigitalOutput {
         check(!gpioDevices.containsKey(pinName))
         val device = SimulationDigitalOutputDevice()
         gpioDevices[pinName] = device
