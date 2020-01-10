@@ -48,18 +48,18 @@ class SimulationDs18b20Manager : ThermometerReader {
         logger.debug("Invoking simulation DS18B20 Reader")
         val heatingMode = fermentationProfileController?.getCurrentHeatingMode() ?: HeatingMode.OFF
         if (heatingMode != prevHeatingMode) {
-            logger.info("Noticing that heating mode changed from $prevHeatingMode to $heatingMode")
+            logger.debug("Noticing that heating mode changed from $prevHeatingMode to $heatingMode")
             prevHeatingMode = heatingMode
         }
         val changeInTemp = when(heatingMode) {
             HeatingMode.OFF -> Random.nextDouble(0.05)
             HeatingMode.HEATING -> 0.25
-            HeatingMode.COOLING -> 0.097
+            HeatingMode.COOLING -> 0.01
         }
 
         //if temperature control is off generate some random wobble attributable to environmental conditions
         val sgn = when (heatingMode) {
-            HeatingMode.OFF -> -1
+            HeatingMode.OFF -> -1 //todo make configurable (allow ambient temp)
             HeatingMode.HEATING ->  1
             HeatingMode.COOLING ->  -1
         }

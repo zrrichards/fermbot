@@ -57,6 +57,9 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
     init {
         logger.info("CurrentProfile: {}", if (currentProfile.isEmpty()) { "[empty]" } else { "\n${prettyFormatCurrentProfile()}"})
         fermentationMonitorTask.run() //initial post to brewfather so device is visible
+        if (Environments.SIMULATION in environment.activeNames) {
+            logger.info("In simulation mode. Simulation step duration: ${determineSimulationStepDuration()}")
+        }
         if (thermometerReader is SimulationDs18b20Manager) { //if we're simulating temperature, pass this instance to the thermometer.
             thermometerReader.fermentationProfileController = this
         }
@@ -116,8 +119,9 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
 
     @Post("/snapshot")
     fun captureSnapshot() {
-        val canRun = fermentationMonitorFuture != null && !fermentationMonitorFuture.isCancelled
+        val canRun = fermentationMonitorFuture != null && !fermentationMonitorFuture!!.isCancelled
         check(canRun)
+        logger.info("Received request to force snapshot. Capturing now.")
         fermentationMonitorTask.run()
     }
 
@@ -145,7 +149,7 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
 
     private fun determineSimulationStepDuration(): Duration {
         //in simulation mode, a second is equivalent to a day. Equivalent to every 10 minutes
-        return Duration.ofMillis(10)
+        return environment.getProperty(FermbotProperties.simulationStep, Duration::class.java).orElse(Duration.ofMillis(10))
     }
 
     fun clearProfile() {

@@ -20,4 +20,6 @@ object FermbotProperties {
     const val isCoolerEnabled = "fermbot.cooler.enabled"
     const val heaterPinName = "fermbot.heater.pin-name"
     const val coolerPinName = "fermbot.cooler.pin-name"
+
+    const val simulationStep = "fermbot.simulation.step.duration"
 }

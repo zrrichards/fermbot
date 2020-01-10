@@ -78,7 +78,11 @@ class FermentationMonitorTask @Inject constructor(private val brewfather: Option
 
         if (tiltOptional.isPresent && thermometerOptional.isPresent) {
             val tiltHigh = (tiltOptional.get().currentTemp - thermometerOptional.get().currentTemp).round(1)
-            output.append("Tilt reading ${tiltHigh.toStringF()} higher than thermometer")
+            output.append("Tilt reading ${tiltHigh.toStringF()} higher than thermometer ")
+        }
+
+        if (fermentationProfileController != null) {
+            output.append("Heating Mode[${fermentationProfileController?.getCurrentHeatingMode()}")
         }
 
         if (output.isNotEmpty()) {
