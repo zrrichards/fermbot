@@ -1,5 +1,6 @@
 package fermbot.profile
 
+import fermbot.brewfather.Brewfather
 import fermbot.hardwarebridge.ThermoHydrometerReader
 import fermbot.hardwarebridge.ThermometerReader
 import fermbot.hardwarebridge.simulation.SimulationDs18b20Manager
@@ -15,6 +16,7 @@ import io.micronaut.scheduling.TaskExecutors
 import io.micronaut.scheduling.TaskScheduler
 import org.slf4j.LoggerFactory
 import java.time.Duration
+import java.util.*
 import java.util.concurrent.ScheduledFuture
 import javax.inject.Inject
 import javax.inject.Named
@@ -35,12 +37,14 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
                                                         @param:Named(TaskExecutors.SCHEDULED) private val taskScheduler: TaskScheduler,
                                                         private val fermentationMonitorTask: FermentationMonitorTask,
                                                         @param:Named(BeanDefinitions.SETPOINT_COMPLETION_PERSISTER) private val setpointCompletionPersister: Persister<SetpointCompletion>,
-                                                        private val environment: Environment) {
+                                                        private val environment: Environment,
+                                                        brewfather: Optional<Brewfather>) {
 
     private var temperatureControlFuture: ScheduledFuture<*>? = null
     private var fermentationMonitorFuture: ScheduledFuture<*>? = null
 
-    private val BREWFATHER_UPLOAD_PERIOD = Duration.ofSeconds(15 * 60 + 10) //15 minutes + a few seconds as a buffer
+    private val brewfatherUploadPeriod = Duration.ofSeconds(15 * 60 + 10) //15 minutes + a few seconds as a buffer
+    private val tempControlPeriod = Duration.ofMinutes(1)
 
     val currentSetpoint: TemperatureSetpoint
         get() = setpointDeterminer.currentSetpoint
@@ -56,9 +60,17 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
 
     init {
         logger.info("CurrentProfile: {}", if (currentProfile.isEmpty()) { "[empty]" } else { "\n${prettyFormatCurrentProfile()}"})
-        fermentationMonitorTask.run() //initial post to brewfather so device is visible
         if (Environments.SIMULATION in environment.activeNames) {
             logger.info("In simulation mode. Simulation step duration: ${determineSimulationStepDuration()}")
+        }
+        brewfather.ifPresent { brewfather ->
+            logger.info("Posting test data to brewfather so device is visible")
+            val result = brewfather.updateBatchDetails(thermometerReader.getDevices().map { it.currentTemp }, hydrometerReader.readTilt().map { it.specificGravity }, "Fermbot Startup")
+            if (result.isSuccessful()) {
+                logger.info("Upload successful")
+            } else {
+                logger.info("Upload not successful: ${result.result}")
+            }
         }
         if (thermometerReader is SimulationDs18b20Manager) { //if we're simulating temperature, pass this instance to the thermometer.
             thermometerReader.fermentationProfileController = this
@@ -130,7 +142,7 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
      */
     fun start() {
         setpointDeterminer = SetpointDeterminer(currentProfile, setpointCompletionPersister, fermentationMonitorTask)
-        logger.info("Starting fermentation profile")
+        logger.info("Starting fermentation profile. Brewfather upload period: $brewfatherUploadPeriod. Temperature control will run every $tempControlPeriod")
         val temperatureControlTask = TemperatureControlTask(
                 setpointDeterminer, hydrometerReader, hysteresisProfile, thermometerReader, temperatureActuator, fermentationMonitorTask
         )
@@ -142,8 +154,8 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
             temperatureControlFuture = taskScheduler.scheduleAtFixedRate(duration, duration, temperatureControlTask)
             fermentationMonitorFuture = taskScheduler.scheduleAtFixedRate(duration, duration, fermentationMonitorTask)
         } else {
-            temperatureControlFuture = taskScheduler.scheduleAtFixedRate(Duration.ofMinutes(1), Duration.ofMinutes(1), temperatureControlTask)
-            fermentationMonitorFuture = taskScheduler.scheduleAtFixedRate(BREWFATHER_UPLOAD_PERIOD, BREWFATHER_UPLOAD_PERIOD, fermentationMonitorTask)
+            temperatureControlFuture = taskScheduler.scheduleAtFixedRate(tempControlPeriod, tempControlPeriod, temperatureControlTask)
+            fermentationMonitorFuture = taskScheduler.scheduleAtFixedRate(brewfatherUploadPeriod, brewfatherUploadPeriod, fermentationMonitorTask)
         }
     }
 

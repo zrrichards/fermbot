@@ -35,7 +35,7 @@ import javax.inject.Singleton
  * @version $ 12/5/19
  */
 @Singleton
-@Requires(property="brewfather.enabed", value="true")
+@Requires(property="fermbot.brewfather.enabled", value="true")
 class BrewfatherProductionClient @Inject constructor(@Property(name= FermbotProperties.brewfatherCustomStreamId) private val brewfatherCustomStreamId: String, private val brewfatherPayloadFactory: BrewfatherPayloadFactory) : Brewfather {
 
     private val BREWFATHER_URL = "http://log.brewfather.net/stream?id=$brewfatherCustomStreamId"
@@ -48,6 +48,10 @@ class BrewfatherProductionClient @Inject constructor(@Property(name= FermbotProp
     private val SECONDS_BETWEEN_ATTEMPTS = 5
 
     @Inject private lateinit var systemStatistics: SystemStatistics
+
+    init {
+        logger.info("Initializaing Brewfather")
+    }
 
     override fun updateBatchDetails(currentTemp: Optional<Temperature>, specificGravity: Optional<Double>, comment: String): BrewfatherUploadResult {
         require(currentTemp.isPresent || specificGravity.isPresent) {

@@ -1,6 +1,7 @@
 package fermbot.profile
 
 import fermbot.StateController
+import fermbot.hardwarebridge.*
 import fermbot.hardwarebridge.tempcontrol.HardwareBackedTemperatureActuator
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.FermentationMonitorTask
@@ -18,6 +19,7 @@ import io.micronaut.http.client.annotation.Client
 import io.micronaut.runtime.server.EmbeddedServer
 import io.micronaut.test.annotation.MicronautTest
 import io.micronaut.test.annotation.MockBean
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
@@ -26,6 +28,7 @@ import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.Duration
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -172,18 +175,19 @@ class FermentationProfileControllerSpec {
 
 
     @Test
-    fun `persisted profiles are loaded at startup`() {
+    fun `persisted profiles are loaded at startup`() { //TODO assert that brewfather was called on startup
         val persistedProfile: MutableList<TemperatureSetpoint> = mutableListOf(
                 SpecificGravityBasedSetpoint(48.0.toF(), 1.023, "Primary")
         )
         val mockPersister = MockPersister(persistedProfile)
         val mockMonitor = mockk<FermentationMonitorTask>(relaxed=true)
-        val profileController = FermentationProfileController(mockPersister, mockk(), mockk(), mockk(), mockk(), mockk(), mockMonitor, mockk(relaxed=true), environment)
+        val thermometerReader = mockk<ThermometerReader>()
+        every { thermometerReader.getDevices() } returns (Optional.of(DS18B20("test-id", 45.5.toF())))
+        val hydrometerReader = mockk<ThermoHydrometerReader>()
+        every { hydrometerReader.readTilt() } returns(Optional.of(Tilt(TiltColors.BLACK, 1.098, 45.9)))
+        val profileController = FermentationProfileController(mockPersister, mockk(), hydrometerReader, mockk(), thermometerReader, mockk(), mockMonitor, mockk(relaxed=true), environment, Optional.of(mockk(relaxed=true)))
 
         expectThat(profileController.getProfile()).isEqualTo(persistedProfile)
-        verify(exactly = 1) {
-            mockMonitor.run()
-        }
     }
 
 }

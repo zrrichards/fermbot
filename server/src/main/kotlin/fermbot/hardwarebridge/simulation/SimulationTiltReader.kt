@@ -16,7 +16,7 @@ import javax.inject.Singleton
 
 @Singleton
 @Requires(env=[Environments.SIMULATION], property= FermbotProperties.isTiltEnabled, value="true")
-class SimulationTiltReader(private val refreshInterval: Duration = Duration.ofMillis(6)) : ThermoHydrometerReader {
+class SimulationTiltReader : ThermoHydrometerReader {
 
     private val logger = LoggerFactory.getLogger(SimulationTiltReader::class.java)
 
@@ -24,6 +24,8 @@ class SimulationTiltReader(private val refreshInterval: Duration = Duration.ofMi
     private val fg = 1.020
     private var decayFactor = 0.01
     private var decayAmount = 1 - decayFactor
+
+    private val refreshInterval: Duration = Duration.ofMillis(6)
 
     init {
         logger.info("Initializing SimulationTiltReader")

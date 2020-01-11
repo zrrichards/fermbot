@@ -16,6 +16,7 @@ package fermbot.orchestrator
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import fermbot.InstantISO8601Serializer
 import fermbot.hardwarebridge.ThermoHydrometer
+import io.micronaut.context.annotation.Context
 import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
@@ -26,7 +27,7 @@ import javax.inject.Singleton
  * @author Zachary Richards
  * @version $ 12/9/19
  */
-@Singleton
+@Context
 class SystemStatistics {
 
     var latestTiltReading: ThermoHydrometer? = null
@@ -48,9 +49,9 @@ class SystemStatistics {
     @JsonSerialize(using= InstantISO8601Serializer::class, `as`=String::class)
     var lastUploadTime: Instant? = null
 
-    fun getUptime(): Duration {
-        return Duration.ZERO //todo make startup time saved in bean
-    }
+    private val startedAt = Instant.now()
+
+    fun getUptime() = Duration.between(startedAt, Instant.now())!!
 
     fun noteSuccessfulUpload() {
         successfulUploads++

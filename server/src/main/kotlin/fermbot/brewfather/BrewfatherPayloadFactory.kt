@@ -73,8 +73,8 @@ data class BrewfatherPayload(val name: String,
    init {
       check(temp_unit in listOf("C", "F", "K"))
       check(gravity_unit in listOf("G", "P"))
-      check(pressure_unit in listOf("PSI", "BAR", "KPA"))
-      checkBothOrNeither((temp != null || aux_temp != null || ext_temp != null), temp_unit == null) //if at least one temp is given, then we need a unit
+      check(pressure_unit == null || pressure_unit in listOf("PSI", "BAR", "KPA"))
+      checkBothOrNeither((temp != null || aux_temp != null || ext_temp != null), temp_unit != null) //if at least one temp is given, then we need a unit
       checkBothOrNeither(gravity == null, gravity_unit == null)
    }
 }
