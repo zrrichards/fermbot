@@ -5,23 +5,27 @@ micronaut:
     name: fermbot
 
 fermbot:
-  suffix: test #Enter your device name here. These must be unique per fermbot instance
-  pytilt-script-path: #Enter the path to the python directory of this repository. Do not include the trailing slash
+  suffix: test01
+  pytilt-script-path: python
   brewfather:
-    customStreamId: #Enter the custom stream ID from Brewfather (the text after id=)
+    enabled: true
+    customStreamId: #enter string after id= on brewfather page (e.g. 23GDSfjdl2984)
   ds18b20:
     enabled: true
-  cooler:
-    enabled:
-    pin-name: #Enter the pin where the cooler relay is connected todo specify potential valid values
   heater:
-    enabled:
-    pin-name: #Enter the pin where the heater relay is connected todo specify potential valid values
+    enabled: true
+    pin-name: GPIO 4
   hysteresis:
     lower: 1F
     upper: 1F
+  cooler:
+    enabled: true
+    pin-name: GPIO 5
   tilt:
     enabled: true
+  simulation:
+    step:
+      duration: 10ms
   #add a b c for ds18B20 error correction
   #add gravity stability, i.e. how long does gravity have to be within 1 or 2 points to be considered reach (i.e. 12 hours) (in ISO-8601 format)
 
