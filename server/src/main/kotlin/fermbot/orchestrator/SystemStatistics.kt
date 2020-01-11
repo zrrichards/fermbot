@@ -19,8 +19,6 @@ import fermbot.hardwarebridge.ThermoHydrometer
 import io.micronaut.context.annotation.Context
 import java.time.Duration
 import java.time.Instant
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  *
@@ -47,7 +45,7 @@ class SystemStatistics {
         set(_) { throw UnsupportedOperationException() }
 
     @JsonSerialize(using= InstantISO8601Serializer::class, `as`=String::class)
-    var lastUploadTime: Instant? = null
+    var lastSuccessfulUpload: Instant? = null
 
     private val startedAt = Instant.now()
 
@@ -62,7 +60,7 @@ class SystemStatistics {
     }
 
     override fun toString(): String {
-        return "SystemStatistics(successfulUploads=$successfulUploads, failedUploads=$failedUploads, lastUploadTime=$lastUploadTime, uptime=${getUptime().toPrettyString()}, latestTiltReading=$latestTiltReading)"
+        return "SystemStatistics(successfulUploads=$successfulUploads, failedUploads=$failedUploads, lastUploadTime=$lastSuccessfulUpload, uptime=${getUptime().toPrettyString()}, latestTiltReading=$latestTiltReading)"
     }
 }
 

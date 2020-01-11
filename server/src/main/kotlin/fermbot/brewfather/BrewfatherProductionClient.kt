@@ -24,7 +24,9 @@ import io.micronaut.http.MediaType
 import io.micronaut.http.client.DefaultHttpClient
 import org.slf4j.LoggerFactory
 import java.net.URL
+import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -60,6 +62,7 @@ class BrewfatherProductionClient @Inject constructor(@Property(name= FermbotProp
         val payload = brewfatherPayloadFactory.createBrewfatherPayload(currentTemp, specificGravity, comment)
         var attempt = 0
         var lastException: Exception? = null
+
         do {
             try {
                 return post0(payload)
@@ -76,12 +79,13 @@ class BrewfatherProductionClient @Inject constructor(@Property(name= FermbotProp
         throw lastException ?: IllegalStateException("lastException was null yet entered catch block... Please report this error") //shouldn't happen but just in case
     }
 
+
     private fun post0(payload: BrewfatherPayload): BrewfatherUploadResult {
         val result = client.exchange(POST(BREWFATHER_URL, payload).contentType(MediaType.APPLICATION_JSON), String::class.java).blockingFirst()
         val brewfatherResult = ObjectMapper().readValue(result.body().toString(), BrewfatherUploadResult::class.java)
         if (brewfatherResult.isSuccessful()) {
             systemStatistics.noteSuccessfulUpload()
-            systemStatistics.lastUploadTime = Instant.now()
+            systemStatistics.lastSuccessfulUpload = Instant.now()
         } else {
             systemStatistics.noteFailedUpload()
         }

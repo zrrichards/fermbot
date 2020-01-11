@@ -24,4 +24,10 @@ data class BrewfatherUploadResult @ConstructorProperties("result") constructor(v
     fun isSuccessful(): Boolean {
         return result == "success"
     }
+
+    fun isTooEarly(): Boolean {
+        return result == TOO_EARLY
+    }
 }
+
+const val TOO_EARLY = "Too Early"

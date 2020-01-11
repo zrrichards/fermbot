@@ -1,6 +1,7 @@
 package fermbot.ds18b20
 
 import fermbot.Temperature
+import fermbot.toC
 import fermbot.toTemperatureUnit
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -13,7 +14,7 @@ import strikt.assertions.isEqualTo
  * @author Zachary Richards
  * @version 12/11/19
  */
-class TemperaturesSpec {
+class TemperatureSpec {
 
     @Test
     fun `can get temperature reading in same scale as created`() {
@@ -43,5 +44,13 @@ class TemperaturesSpec {
     fun `can get unit from symbol`() {
         expectThat("C".toTemperatureUnit()).isEqualTo(Temperature.Unit.CELSIUS)
         expectThat("F".toTemperatureUnit()).isEqualTo(Temperature.Unit.FAHRENHEIT)
+    }
+
+    @Test
+    fun `toF works properly`() {
+        val temp = 12.0.toC()
+        val tempAsF = temp.toF()
+        expectThat(temp.compareTo(tempAsF)).isEqualTo(0)
+        expectThat(tempAsF.unit).isEqualTo(Temperature.Unit.FAHRENHEIT)
     }
 }

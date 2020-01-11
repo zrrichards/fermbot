@@ -185,7 +185,7 @@ class FermentationProfileControllerSpec {
         every { thermometerReader.getDevices() } returns (Optional.of(DS18B20("test-id", 45.5.toF())))
         val hydrometerReader = mockk<ThermoHydrometerReader>()
         every { hydrometerReader.readTilt() } returns(Optional.of(Tilt(TiltColors.BLACK, 1.098, 45.9)))
-        val profileController = FermentationProfileController(mockPersister, mockk(), hydrometerReader, mockk(), thermometerReader, mockk(), mockMonitor, mockk(relaxed=true), environment, Optional.of(mockk(relaxed=true)))
+        val profileController = FermentationProfileController(mockPersister, mockk(), hydrometerReader, mockk(), thermometerReader, mockk(), mockMonitor, mockk(relaxed=true), environment, Optional.of(mockk(relaxed=true)), mockk())
 
         expectThat(profileController.getProfile()).isEqualTo(persistedProfile)
     }

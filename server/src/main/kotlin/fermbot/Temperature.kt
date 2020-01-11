@@ -48,6 +48,11 @@ data class Temperature(val value: Double, val unit: Unit) {
     operator fun plus(other: Temperature) = (this.asF() + other.asF()).toF()
 
     fun toTemperatureWindow() = TemperatureWindow(value, unit)
+
+    fun toF() = when (this.unit) {
+        Unit.FAHRENHEIT -> this
+        Unit.CELSIUS -> Temperature(asF(), Unit.FAHRENHEIT)
+    }
 }
 
 fun String.toTemperatureUnit() = when (this) {

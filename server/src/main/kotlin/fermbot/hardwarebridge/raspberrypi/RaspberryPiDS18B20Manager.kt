@@ -54,7 +54,7 @@ class RaspberryPiDS18B20Manager: ThermometerReader {
             val device = w1Devices[0]
             device as TemperatureSensor
             val temp = corrector(device.getTemperature(TemperatureScale.CELSIUS).toC())
-            val ds18b20 = DS18B20(device.id, temp, Instant.now())
+            val ds18b20 = DS18B20(device.id, temp.toF(), Instant.now()) //now that we've corrected the temp, convert it to fahrenheit so that it's consistent. This will make the last snapshot be in fahrenheit.
             logger.debug("Read DS18B20: {}", ds18b20)
             return Optional.of(ds18b20)
         } catch (e: Exception) {
