@@ -13,6 +13,14 @@ class TemperatureControlTask(private val setpointDeterminer: SetpointDeterminer,
     private val logger = LoggerFactory.getLogger(TemperatureControlTask::class.java)
 
     override fun run() {
+        try {
+            run0()
+        } catch (e: Exception) {
+            logger.error("Caught exception running temperature control task:", e)
+        }
+    }
+
+    private fun run0() {
         val thermohydrometer = hydrometerReader.readTilt()
         val setpoint = setpointDeterminer.getSetpoint(thermohydrometer)
         val currentHeatingMode = temperatureActuator.currentHeatingMode
