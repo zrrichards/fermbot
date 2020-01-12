@@ -183,7 +183,7 @@ class BrewfatherUploadTask @Inject constructor(private val brewfather: Optional<
                 val tempOptional = Optional.ofNullable(currentTemp)
                 val sgOptional = Optional.ofNullable(currentSg)
 
-                val commentString = """Current Setpoint: ${fermentationProfileController?.currentSetpoint?.temperature}\nCurrent Heating Mode: ${fermentationProfileController?.getCurrentHeatingMode()}"""
+                val commentString = """Setpoint: ${fermentationProfileController?.currentSetpoint?.temperature} Heating Mode: ${fermentationProfileController?.getCurrentHeatingMode()}"""
 
                 val result = brewfather.get().updateBatchDetails(tempOptional, sgOptional, commentString)
                 when {
