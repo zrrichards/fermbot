@@ -1,5 +1,7 @@
 package fermbot.hardwarebridge.raspberrypi
 
+import com.pi4j.component.temperature.TemperatureChangeEvent
+import com.pi4j.component.temperature.TemperatureListener
 import com.pi4j.component.temperature.TemperatureSensor
 import com.pi4j.component.temperature.impl.TmpDS18B20DeviceType
 import com.pi4j.io.w1.W1Device

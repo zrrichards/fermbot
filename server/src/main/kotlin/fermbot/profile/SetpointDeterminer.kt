@@ -33,8 +33,8 @@ class SetpointDeterminer(private val setpoints: List<TemperatureSetpoint>, priva
         if (currentSetpointCompletion.setpont != setpointFromProfile) {
             logger.info("Setpoint mismatch from persisted data. Loaded from file: ${currentSetpointCompletion.setpont}. Set in the current profile: $setpointFromProfile. Ignoring persisted data")
             currentSetpointCompletion = beginning()
-            setpointCompletionPersister.persist(currentSetpointCompletion)
         }
+        setpointCompletionPersister.persist(currentSetpointCompletion)
     }
 
     fun <T: Hydrometer> getSetpoint(hydrometer: Optional<T>): TemperatureSetpoint {
