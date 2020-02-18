@@ -49,8 +49,8 @@ class StateController @Inject constructor (private val fermentationProfileContro
         val desiredState = statePersister.loadOrElse(currentState)
         if (desiredState == State.RUNNING) {
             logger.info("Was in state 'running' before restart. Starting")
-            logger.info("Current Setpoint: ${fermentationProfileController.currentSetpoint}")
             start()
+            logger.info("Current Setpoint: ${fermentationProfileController.currentSetpoint}")
         }
     }
 
