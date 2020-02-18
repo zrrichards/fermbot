@@ -2,6 +2,7 @@ package fermbot
 
 import fermbot.brewfather.ConfigurationValidator
 import fermbot.monitor.FermentationMonitorTask
+import fermbot.profile.BeanDefinitions
 import fermbot.profile.FermentationProfileController
 import fermbot.profile.Persister
 import fermbot.profile.TemperatureSetpoint
@@ -13,6 +14,7 @@ import io.micronaut.http.annotation.Post
 import org.slf4j.LoggerFactory
 import java.lang.IllegalStateException
 import javax.inject.Inject
+import javax.inject.Named
 
 /**
  * The main controller for the Fermbot. This controls all state changes and is the main entry point for interaction.
@@ -22,7 +24,7 @@ import javax.inject.Inject
  */
 @Context
 @Controller("/")
-class StateController @Inject constructor (private val fermentationProfileController: FermentationProfileController, private val configurationValidator: ConfigurationValidator) {
+class StateController @Inject constructor (private val fermentationProfileController: FermentationProfileController, private val configurationValidator: ConfigurationValidator, @param:Named(BeanDefinitions.STATE_PERSISTER) private val statePersister: Persister<State>) {
 
     private val logger = LoggerFactory.getLogger(StateController::class.java)
 
@@ -43,6 +45,12 @@ class StateController @Inject constructor (private val fermentationProfileContro
                 currentState = State.PENDING_PROFILE
             }
             logger.info("Initializing state controller. Current state: $currentState")
+        }
+        val desiredState = statePersister.loadOrElse(currentState)
+        if (desiredState == State.RUNNING) {
+            logger.info("Was in state 'running' before restart. Starting")
+            logger.info("Current Setpoint: ${fermentationProfileController.currentSetpoint}")
+            start()
         }
     }
 
@@ -94,7 +102,7 @@ class StateController @Inject constructor (private val fermentationProfileContro
     private fun setState(newState: State) {
         logger.info("Changing state: ${currentState.name} -> ${newState.name}")
         currentState = newState
-        currentState.persist()
+        statePersister.persist(currentState)
     }
 
     fun returnToPendingProfile() {

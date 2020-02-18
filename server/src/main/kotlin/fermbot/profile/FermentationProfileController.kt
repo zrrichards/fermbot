@@ -7,6 +7,7 @@ import fermbot.hardwarebridge.simulation.SimulationDs18b20Manager
 import fermbot.hardwarebridge.tempcontrol.TemperatureActuator
 import fermbot.monitor.BrewfatherUploadTask
 import fermbot.monitor.FermentationMonitorTask
+import fermbot.monitor.FermentationSnapshot
 import fermbot.monitor.HeatingMode
 import io.micronaut.context.env.Environment
 import io.micronaut.http.MediaType
@@ -135,11 +136,12 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
     fun getLatestSnapshot() = fermentationMonitorTask.mostRecentSnapshot
 
     @Post("/snapshot")
-    fun captureSnapshot() {
+    fun captureSnapshot(): FermentationSnapshot {
         val canRun = fermentationMonitorFuture != null && !fermentationMonitorFuture!!.isCancelled
         check(canRun)
         logger.info("Received request to force snapshot. Capturing now.")
         fermentationMonitorTask.run()
+        return getLatestSnapshot()
     }
 
     /**
@@ -173,6 +175,7 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
     fun clearProfile() {
         logger.info("Clearing fermentation profile")
         currentProfile.clear()
+        profilePersister.clear()
     }
 
     fun getCurrentHeatingMode() = temperatureActuator.currentHeatingMode //FIXME I don't really like reaching through the rest controller
