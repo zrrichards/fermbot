@@ -100,6 +100,7 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
         logger.info("Fermentation profile changed to: \n{}", prettyFormatCurrentProfile())
         profilePersister.persist(currentProfile)
         setpointCompletionPersister.clear()
+        fermentationMonitorTask.clearSnapshots()
     }
 
     private fun prettyFormatCurrentProfile(): String {
@@ -152,7 +153,6 @@ class FermentationProfileController @Inject constructor(@param:Named(BeanDefinit
         )
         temperatureControlTask.run()
         fermentationMonitorTask.fermentationProfileController = this
-        fermentationMonitorTask.clearSnapshots()
         brewfatherUploadTask.fermentationProfileController = this
         if (Environments.SIMULATION in environment.activeNames) {
             val duration = determineSimulationStepDuration()
