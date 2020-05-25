@@ -45,7 +45,7 @@ class HardwareBackedTemperatureActuator @Inject constructor(@param:Named(BeanDef
 
     private val logger = LoggerFactory.getLogger(HardwareBackedTemperatureActuator::class.java)
 
-    private fun Optional<DigitalOutputDevice>.isEnabled() = map { it.isEnabled() }.orElse(false)
+    private fun Optional<DigitalOutputDevice>.isEnabled(): Boolean = map { it.isEnabled() }.orElse(false)
 
     init {
         check (currentHeatingMode == HeatingMode.OFF) { "Heating mode should initially be off. This is a bug" }

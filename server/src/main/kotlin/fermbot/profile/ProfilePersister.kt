@@ -2,6 +2,8 @@ package fermbot.profile
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import fermbot.State
+import fermbot.fromName
 import org.slf4j.LoggerFactory
 import java.nio.file.Paths
 import javax.inject.Inject
@@ -46,6 +48,35 @@ class FileBasedProfilePersister @Inject constructor(private val objectMapper: Ob
         } else {
             currentProfileFile.writeText(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(currentProfile))
         }
+    }
+
+}
+
+@Singleton
+@Named(BeanDefinitions.STATE_PERSISTER)
+class FileBasedStatePersister @Inject constructor (private val objectMapper: ObjectMapper) : Persister<State> {
+
+    private val currentProfileFile = Paths.get(".current-state").toFile()
+
+    override fun hasPersistedData(): Boolean {
+        return try {
+            read()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    override fun read(): State {
+        return objectMapper.readValue(currentProfileFile.readText())
+    }
+
+    override fun persist(currentProfile: State) {
+        currentProfileFile.writeText(objectMapper.writeValueAsString(currentProfile))
+    }
+
+    override fun clear() {
+        currentProfileFile.delete()
     }
 
 }

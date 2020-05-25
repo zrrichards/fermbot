@@ -17,3 +17,4 @@ src/main/resources/application.yml
 .current-profile.json
 .current-setpoint-completion.json
 .fermentation-snapshots
+.current-state

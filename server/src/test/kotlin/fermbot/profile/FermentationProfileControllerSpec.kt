@@ -1,5 +1,6 @@
 package fermbot.profile
 
+import fermbot.State
 import fermbot.StateController
 import fermbot.hardwarebridge.*
 import fermbot.hardwarebridge.tempcontrol.HardwareBackedTemperatureActuator
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.lang.UnsupportedOperationException
 import java.time.Duration
 import java.util.*
 import javax.inject.Inject
@@ -80,6 +82,28 @@ class FermentationProfileControllerSpec {
         override fun persist(currentProfile: List<TemperatureSetpoint>) {
             persistedProfile = currentProfile.toMutableList()
         }
+    }
+
+    @Replaces(FileBasedStatePersister::class)
+    @Named(BeanDefinitions.STATE_PERSISTER)
+    @Singleton
+    class MockStatePersister : Persister<State> {
+        override fun hasPersistedData(): Boolean {
+            return false
+        }
+
+        override fun read(): State {
+            throw UnsupportedOperationException()
+        }
+
+        override fun persist(currentProfile: State) {
+            //do nothing
+        }
+
+        override fun clear() {
+            //do nothing
+        }
+
     }
 
     class MockTemperatureActuator : TemperatureActuator {

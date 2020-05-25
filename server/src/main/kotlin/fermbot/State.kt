@@ -26,19 +26,12 @@ sealed class State {
 
     fun isValidNextState(state: State) = (state == this || state in validNextStates)
 
-    open fun persist() { /* do nothing by default */ }
-
     object PENDING_PROFILE: State() {
-        override fun persist() {
-        }
-
         override val validNextStates = listOf(TESTING, READY)
         override val name = "Pending Profile"
     }
 
     object READY: State() {
-        override fun persist() {
-        }
         override val validNextStates = listOf(PENDING_PROFILE, RUNNING)
         override val name = "Ready"
     }
@@ -49,8 +42,6 @@ sealed class State {
     }
 
     object RUNNING: State() {
-        override fun persist() {
-        }
         override val validNextStates = listOf(PENDING_PROFILE, READY)
         override val name = "Running"
     }
@@ -60,6 +51,8 @@ sealed class State {
  * Returns a list of all valid states in the system
  */
 fun validStates() = State::class.nestedClasses.map { it.objectInstance as State }
+
+fun fromName(name: String) = validStates().find { it.name == name } ?: throw IllegalArgumentException("Unrecognized state name $name")
 
 @Singleton
 class StateSerializer : JsonSerializer<State>() {
